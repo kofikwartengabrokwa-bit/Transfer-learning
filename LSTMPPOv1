@@ -1,0 +1,2561 @@
+import os
+import glob
+import requests
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+import os
+import re
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# ============================================================
+# Configuration
+# ============================================================
+
+FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+MODEL_NAME = "LSTM"
+MAX_EPOCH = 50
+
+# ============================================================
+# Search for statistics files
+# ============================================================
+
+print("=" * 80)
+print("Searching for training statistics files")
+print("=" * 80)
+
+files_found = []
+
+for root, dirs, files in os.walk(FOLDER):
+    for file in files:
+        if file.lower().endswith((".txt", ".log", ".csv", ".xlsx", ".xls")):
+            files_found.append(os.path.join(root, file))
+
+if not files_found:
+    raise FileNotFoundError(
+        f"No .txt, .log, .csv, or .xlsx files were found in:\n{FOLDER}"
+    )
+
+print(f"Files found: {len(files_found)}\n")
+
+for file in files_found:
+    print(os.path.basename(file))
+
+# ============================================================
+# Extract LSTM statistics
+# ============================================================
+
+records = []
+
+# Pattern for lines such as:
+# LSTM | Epoch [1/50] | Train Loss: 0.287829 |
+# Val Loss: 0.131224 | Test Loss: 0.150694
+
+pattern = re.compile(
+    r"LSTM\s*\|\s*Epoch\s*\[(\d+)/\d+\]"
+    r"\s*\|\s*Train Loss:\s*([0-9.eE+-]+)"
+    r"\s*\|\s*Val Loss:\s*([0-9.eE+-]+)"
+    r"\s*\|\s*Test Loss:\s*([0-9.eE+-]+)"
+)
+
+# ------------------------------------------------------------
+# Read text/log files
+# ------------------------------------------------------------
+
+for filepath in files_found:
+
+    if filepath.lower().endswith((".txt", ".log")):
+
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                text = f.read()
+
+            matches = pattern.findall(text)
+
+            for match in matches:
+                epoch, train_loss, val_loss, test_loss = match
+
+                records.append({
+                    "epoch": int(epoch),
+                    "Train Loss": float(train_loss),
+                    "Val Loss": float(val_loss),
+                    "Test Loss": float(test_loss)
+                })
+
+        except Exception as e:
+            print(f"Could not read {filepath}: {e}")
+
+# ------------------------------------------------------------
+# Read CSV files
+# ------------------------------------------------------------
+
+for filepath in files_found:
+
+    if filepath.lower().endswith(".csv"):
+
+        try:
+            df = pd.read_csv(filepath)
+
+            # Convert column names to lowercase for flexible matching
+            cols = {str(c).lower().strip(): c for c in df.columns}
+
+            if (
+                "epoch" in cols
+                and "train loss" in cols
+                and "val loss" in cols
+                and "test loss" in cols
+            ):
+
+                temp = pd.DataFrame({
+                    "epoch": pd.to_numeric(df[cols["epoch"]], errors="coerce"),
+                    "Train Loss": pd.to_numeric(
+                        df[cols["train loss"]], errors="coerce"
+                    ),
+                    "Val Loss": pd.to_numeric(
+                        df[cols["val loss"]], errors="coerce"
+                    ),
+                    "Test Loss": pd.to_numeric(
+                        df[cols["test loss"]], errors="coerce"
+                    )
+                })
+
+                records.extend(temp.dropna().to_dict("records"))
+
+        except Exception as e:
+            print(f"Could not read {filepath}: {e}")
+
+# ------------------------------------------------------------
+# Read Excel files
+# ------------------------------------------------------------
+
+for filepath in files_found:
+
+    if filepath.lower().endswith((".xlsx", ".xls")):
+
+        try:
+            excel_file = pd.ExcelFile(filepath)
+
+            for sheet in excel_file.sheet_names:
+
+                df = pd.read_excel(filepath, sheet_name=sheet)
+
+                cols = {str(c).lower().strip(): c for c in df.columns}
+
+                if (
+                    "epoch" in cols
+                    and "train loss" in cols
+                    and "val loss" in cols
+                    and "test loss" in cols
+                ):
+
+                    temp = pd.DataFrame({
+                        "epoch": pd.to_numeric(
+                            df[cols["epoch"]], errors="coerce"
+                        ),
+                        "Train Loss": pd.to_numeric(
+                            df[cols["train loss"]], errors="coerce"
+                        ),
+                        "Val Loss": pd.to_numeric(
+                            df[cols["val loss"]], errors="coerce"
+                        ),
+                        "Test Loss": pd.to_numeric(
+                            df[cols["test loss"]], errors="coerce"
+                        )
+                    })
+
+                    records.extend(temp.dropna().to_dict("records"))
+
+        except Exception as e:
+            print(f"Could not read {filepath}: {e}")
+
+# ============================================================
+# Check extracted data
+# ============================================================
+
+if not records:
+    raise ValueError(
+        "No LSTM training statistics were extracted.\n"
+        "Check that the saved file contains lines such as:\n\n"
+        "LSTM | Epoch [1/50] | Train Loss: 0.287829 | "
+        "Val Loss: 0.131224 | Test Loss: 0.150694"
+    )
+
+stats = pd.DataFrame(records)
+
+# Remove duplicated epochs
+stats = stats.drop_duplicates(subset=["epoch"])
+
+# Sort chronologically
+stats = stats.sort_values("epoch").reset_index(drop=True)
+
+# Keep first 10 epochs
+stats_10 = stats[stats["epoch"] <= MAX_EPOCH].copy()
+
+# ============================================================
+# Print first 10 epochs
+# ============================================================
+
+print("\n")
+print("=" * 80)
+print("LSTM TRAINING STATISTICS — FIRST 10 EPOCHS")
+print("=" * 80)
+
+print(
+    stats_10[
+        ["epoch", "Train Loss", "Val Loss", "Test Loss"]
+    ].to_string(
+        index=False,
+        formatters={
+            "Train Loss": "{:.6f}".format,
+            "Val Loss": "{:.6f}".format,
+            "Test Loss": "{:.6f}".format
+        }
+    )
+)
+
+# ============================================================
+# Plot
+# ============================================================
+
+plt.rcParams["font.family"] = "Times New Roman"
+
+plt.figure(figsize=(11, 7))
+
+plt.plot(
+    stats_10["epoch"],
+    stats_10["Train Loss"],
+    marker="o",
+    linewidth=2.5,
+    markersize=8,
+    label="Training Loss"
+)
+
+plt.plot(
+    stats_10["epoch"],
+    stats_10["Val Loss"],
+    marker="s",
+    linewidth=2.5,
+    markersize=8,
+    label="Validation Loss"
+)
+
+plt.plot(
+    stats_10["epoch"],
+    stats_10["Test Loss"],
+    marker="^",
+    linewidth=2.5,
+    markersize=8,
+    label="Testing Loss"
+)
+
+plt.xlabel(
+    "Epoch",
+    fontsize=23,
+    fontname="Times New Roman"
+)
+
+plt.ylabel(
+    "MSE Loss",
+    fontsize=23,
+    fontname="Times New Roman"
+)
+
+plt.xticks(
+    range(1, MAX_EPOCH + 1),
+    fontsize=23,
+    fontname="Times New Roman"
+)
+
+plt.yticks(
+    fontsize=23,
+    fontname="Times New Roman"
+)
+
+plt.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.18),
+    ncol=3,
+    frameon=False,
+    prop={
+        "family": "Times New Roman",
+        "size": 21
+    }
+)
+
+plt.grid(
+    True,
+    linestyle="--",
+    linewidth=0.7,
+    alpha=0.6
+)
+
+plt.xlim(1, MAX_EPOCH)
+
+plt.tight_layout()
+
+# ============================================================
+# Save plots
+# ============================================================
+
+png_path = os.path.join(
+    FOLDER,
+    "LSTM_Loss_First_10_Epochs.png"
+)
+
+eps_path = os.path.join(
+    FOLDER,
+    "LSTM_Loss_First_10_Epochs.eps"
+)
+
+plt.savefig(
+    png_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    eps_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print("\n")
+print("=" * 80)
+print("PLOT SAVED")
+print("=" * 80)
+print(f"PNG: {png_path}")
+print(f"EPS: {eps_path}")
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+DATA_DIR = "oran_zenodo_data"
+#DATA_DIR =r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+#SEQUENCE_LENGTH = SEQUENCE_LENGTH = 20#10
+PREDICTION_HORIZON = 1
+
+#BATCH_SIZE = 64#128
+#HIDDEN_SIZE = 64#128
+#NUM_LAYERS = 2#2
+
+#LEARNING_RATE = 5e-4#1e-3#self.dropout = nn.Dropout(0.2)
+#EPOCHS = 50
+SEQUENCE_LENGTH = 20
+
+HIDDEN_SIZE = 64
+
+NUM_LAYERS = 2
+
+DROPOUT = 0.2
+
+BATCH_SIZE = 64
+
+LEARNING_RATE = 5e-4
+
+EPOCHS = 1
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+print("=" * 90)
+print("O-RAN LSTM TRAINING")
+print("=" * 90)
+print("Device:", DEVICE)
+
+# ============================================================
+# DOWNLOAD ZENODO O-RAN DATASET
+# ============================================================
+
+os.makedirs(DATA_DIR, exist_ok=True)
+
+ZENODO_API = "https://zenodo.org/api/records/15556363"
+
+response = requests.get(ZENODO_API)
+
+if response.status_code != 200:
+    raise RuntimeError(
+        f"Unable to access Zenodo API. Status code: {response.status_code}"
+    )
+
+record = response.json()
+
+files = record["files"]
+
+csv_files = [
+    f for f in files
+    if f["key"].lower().endswith(".csv")
+]
+
+print("\nZenodo CSV files found:")
+for f in csv_files:
+    print(f["key"])
+
+for f in csv_files:
+
+    filename = f["key"]
+    filepath = os.path.join(DATA_DIR, filename)
+
+    if not os.path.exists(filepath):
+
+        print("\nDownloading:", filename)
+
+        file_url = f["links"]["self"]
+
+        r = requests.get(file_url, stream=True)
+
+        if r.status_code != 200:
+            raise RuntimeError(
+                f"Failed to download {filename}: {r.status_code}"
+            )
+
+        with open(filepath, "wb") as output:
+
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+
+                if chunk:
+                    output.write(chunk)
+
+        print("Saved:", filepath)
+
+    else:
+        print("Already exists:", filepath)
+
+
+# ============================================================
+# LOAD AND INSPECT DATASET
+# ============================================================
+
+csv_paths = glob.glob(
+    os.path.join(DATA_DIR, "*.csv")
+)
+
+if len(csv_paths) == 0:
+    raise FileNotFoundError(
+        "No CSV files were found in the Zenodo dataset directory."
+    )
+
+print("\nNumber of CSV files:", len(csv_paths))
+
+for path in csv_paths:
+
+    print("\n" + "=" * 90)
+    print("FILE:", os.path.basename(path))
+    print("=" * 90)
+
+    temp_df = pd.read_csv(path)
+
+    print("Shape:", temp_df.shape)
+
+    print("\nColumns:")
+    for i, col in enumerate(temp_df.columns, start=1):
+        print(f"{i:2d}. {col}")
+
+    print("\nFirst 5 rows:")
+    print(temp_df.head())
+
+import glob
+import pandas as pd
+import os
+
+
+DATA_PATH = r"E:\your_dataset_folder"
+
+files = glob.glob(
+    os.path.join(DATA_PATH, "*.csv")
+)
+
+print("Number of CSV files:", len(files))
+
+
+for f in files[:5]:
+
+    print("\n============================")
+    print(os.path.basename(f))
+
+    df = pd.read_csv(f)
+
+    print("Shape:", df.shape)
+
+    print("Columns:")
+    print(df.columns.tolist())
+
+    print("\nFirst rows:")
+    print(df.head())
+# ============================================================
+# FLEXIBLE O-RAN KPI COLUMN MAPPING
+# ============================================================
+
+KPI_ALIASES = {
+
+    "MCS": [
+        "MCS",
+        "dl_mcs",
+        "ul_mcs",
+        "Modulation_Coding"
+    ],
+
+    "CQI": [
+        "CQI",
+        "dl_cqi",
+        "ul_cqi"
+    ],
+
+    "RI": [
+        "RI",
+        "Rank_Indicator",
+        "rank"
+    ],
+
+    "PMI": [
+        "PMI",
+        "Precoding_Matrix"
+    ],
+
+    "Buffer": [
+        "Buffer",
+        "buffer",
+        "queue_bytes",
+        "Queue"
+    ],
+
+    "PRBs": [
+        "PRBs",
+        "PRB",
+        "nr_prb",
+        "resource_blocks"
+    ],
+
+    "RSRQ": [
+        "RSRQ",
+        "rsrq_db",
+        "RSRQ_dB"
+    ],
+
+    "RSRP": [
+        "RSRP",
+        "rsrp_dbm",
+        "RSRP_dBm"
+    ],
+
+    "RSSI": [
+        "RSSI",
+        "rssi_dbm"
+    ],
+
+    "SINR": [
+        "SINR",
+        "sinr_db",
+        "SINR_dB"
+    ],
+
+    "Spectral_Efficiency": [
+        "Spectral_Efficiency",
+        "spectral_efficiency",
+        "SE"
+    ],
+
+    "BLER": [
+        "BLER",
+        "dl_bler",
+        "ul_bler"
+    ],
+
+    "Packet_Delay": [
+        "Packet_Delay",
+        "delay_ms",
+        "Latency",
+        "Delay"
+    ],
+
+    # Cloud/O-DU KPIs
+    "CPU_Load": [
+        "CPU_Load",
+        "CPU",
+        "cpu_usage"
+    ],
+
+    "Power": [
+        "Power",
+        "power",
+        "Energy"
+    ],
+
+    "Network_RX": [
+        "Network_RX",
+        "RX",
+        "Traffic_RX"
+    ],
+
+    "Network_TX": [
+        "Network_TX",
+        "TX",
+        "Traffic_TX"
+    ]
+
+}
+
+
+
+# ============================================================
+# AUTOMATIC KPI STANDARDIZATION
+# ============================================================
+
+
+def standardize_kpis(df):
+
+    rename_dict = {}
+
+    available = df.columns.tolist()
+
+    for standard_name, aliases in KPI_ALIASES.items():
+
+        for alias in aliases:
+
+            if alias in available:
+
+                rename_dict[alias] = standard_name
+                break
+
+
+    df = df.rename(
+        columns=rename_dict
+    )
+
+
+    return df
+
+
+
+# ============================================================
+# LOAD EXPERIMENTS WITHOUT ZERO-DATA FAILURE
+# ============================================================
+
+# ============================================================
+# FLEXIBLE O-RAN KPI STANDARDIZATION
+# ============================================================
+
+KPI_ALIASES = {
+
+    # Radio KPIs
+    "MCS": [
+        "MCS",
+        "dl_mcs",
+        "ul_mcs",
+        "Modulation_Coding"
+    ],
+
+    "CQI": [
+        "CQI",
+        "dl_cqi",
+        "ul_cqi"
+    ],
+
+    "RI": [
+        "RI",
+        "Rank_Indicator"
+    ],
+
+    "PMI": [
+        "PMI",
+        "Precoding_Matrix"
+    ],
+
+    "Buffer": [
+        "Buffer",
+        "queue_bytes",
+        "Queue"
+    ],
+
+    "PRBs": [
+        "PRBs",
+        "PRB",
+        "nr_prb",
+        "resource_blocks"
+    ],
+
+    "RSRQ": [
+        "RSRQ",
+        "rsrq_db"
+    ],
+
+    "RSRP": [
+        "RSRP",
+        "rsrp_dbm"
+    ],
+
+    "RSSI": [
+        "RSSI",
+        "rssi_dbm"
+    ],
+
+    "SINR": [
+        "SINR",
+        "sinr_db"
+    ],
+
+    "Spectral_Efficiency": [
+        "Spectral_Efficiency",
+        "spectral_efficiency"
+    ],
+
+    "BLER": [
+        "BLER",
+        "dl_bler",
+        "ul_bler"
+    ],
+
+    "Packet_Delay": [
+        "Packet_Delay",
+        "delay_ms",
+        "Latency",
+        "Delay"
+    ],
+
+
+    # O-DU cloud KPIs
+    "CPU_Load": [
+        "CPU_Load",
+        "CPU",
+        "cpu_usage"
+    ],
+
+    "Power": [
+        "Power",
+        "power",
+        "Energy"
+    ],
+
+    "Network_RX": [
+        "Network_RX",
+        "RX",
+        "Traffic_RX"
+    ],
+
+    "Network_TX": [
+        "Network_TX",
+        "TX",
+        "Traffic_TX"
+    ]
+
+}
+
+
+
+from difflib import SequenceMatcher
+
+
+def fuzzy_match(column, keywords):
+
+    column = column.lower()
+
+    for k in keywords:
+
+        if k.lower() in column:
+            return True
+
+    return False
+
+
+
+def standardize_kpis(df):
+
+    rename = {}
+
+
+    for col in df.columns:
+
+
+        # Radio KPIs
+
+        if fuzzy_match(col,
+                       ["cqi"]):
+            rename[col] = "CQI"
+
+
+        elif fuzzy_match(col,
+                         ["mcs"]):
+            rename[col] = "MCS"
+
+
+        elif fuzzy_match(col,
+                         ["prb",
+                          "resourceblock",
+                          "resource_block"]):
+            rename[col] = "PRBs"
+
+
+        elif fuzzy_match(col,
+                         ["rsrp"]):
+            rename[col] = "RSRP"
+
+
+        elif fuzzy_match(col,
+                         ["rsrq"]):
+            rename[col] = "RSRQ"
+
+
+        elif fuzzy_match(col,
+                         ["sinr"]):
+            rename[col] = "SINR"
+
+
+        elif fuzzy_match(col,
+                         ["bler"]):
+            rename[col] = "BLER"
+
+
+        elif fuzzy_match(col,
+                         ["delay",
+                          "latency"]):
+            rename[col] = "Packet_Delay"
+
+
+        elif fuzzy_match(col,
+                         ["buffer",
+                          "queue"]):
+            rename[col] = "Buffer"
+
+
+
+        # Cloud/O-DU KPIs
+
+        elif fuzzy_match(col,
+                         ["cpu"]):
+            rename[col] = "CPU_Load"
+
+
+        elif fuzzy_match(col,
+                         ["power",
+                          "energy"]):
+            rename[col] = "Power"
+
+
+        elif fuzzy_match(col,
+                         ["rx",
+                          "receive"]):
+            rename[col] = "Network_RX"
+
+
+        elif fuzzy_match(col,
+                         ["tx",
+                          "transmit"]):
+            rename[col] = "Network_TX"
+
+
+
+    df = df.rename(
+        columns=rename
+    )
+
+
+    return df
+
+
+
+# ============================================================
+# LOAD ALL O-RAN EXPERIMENT FILES
+# ============================================================
+
+
+experiment_data = []
+
+
+for path in sorted(csv_paths):
+
+    print("\nProcessing:",
+          os.path.basename(path))
+
+
+    df = pd.read_csv(path)
+
+
+    print("Original shape:",
+          df.shape)
+
+
+    # standardize KPI names
+
+    df = standardize_kpis(df)
+
+
+
+    # Detect available KPIs
+
+    available_kpis = [
+        k for k in KPI_ALIASES.keys()
+        if k in df.columns
+    ]
+
+
+    print(
+        "Detected KPIs:",
+        available_kpis
+    )
+
+
+    # Require at least five state variables
+
+    if len(available_kpis) < 5:
+
+        print(
+            "Skipped: insufficient KPI information"
+        )
+
+        continue
+
+
+
+    # Convert to numeric
+
+    for k in available_kpis:
+
+        df[k] = pd.to_numeric(
+            df[k],
+            errors="coerce"
+        )
+
+
+    # Remove invalid rows
+
+    df = df.dropna(
+        subset=available_kpis
+    )
+
+
+
+    if len(df)==0:
+
+        print(
+            "Skipped: no valid observations"
+        )
+
+        continue
+
+
+
+    df["experiment_id"] = (
+        os.path.basename(path)
+    )
+
+
+    experiment_data.append(
+        df[
+            available_kpis+
+            ["experiment_id"]
+        ]
+    )
+
+
+
+print("\n================================")
+print(
+    "Valid experiments:",
+    len(experiment_data)
+)
+print("================================")
+
+
+
+if len(experiment_data)==0:
+
+    raise RuntimeError(
+        "No usable O-RAN KPI data detected."
+    )
+
+
+
+for i, exp in enumerate(experiment_data):
+
+    print(
+        f"Experiment {i+1}: "
+        f"{exp.shape}"
+    )
+
+
+
+# ============================================================
+# MERGE EXPERIMENTS
+# ============================================================
+
+
+dataset = pd.concat(
+    experiment_data,
+    ignore_index=True
+)
+
+
+print("\nCombined O-RAN KPI Dataset")
+print(dataset.shape)
+
+
+print("\nFinal Features:")
+print(
+    dataset.columns.tolist()
+)
+
+
+
+# ============================================================
+# TEMPORAL TRAIN VALIDATION TEST SPLIT
+# ============================================================
+
+
+dataset = dataset.reset_index(
+    drop=True
+)
+
+
+N = len(dataset)
+
+
+train_end = int(0.70*N)
+
+val_end = int(0.85*N)
+
+
+
+train_df = dataset.iloc[
+    :train_end
+]
+
+
+val_df = dataset.iloc[
+    train_end:val_end
+]
+
+
+test_df = dataset.iloc[
+    val_end:
+]
+
+
+
+print("\nTemporal split completed")
+
+print(
+    "Training:",
+    train_df.shape
+)
+
+print(
+    "Validation:",
+    val_df.shape
+)
+
+print(
+    "Testing:",
+    test_df.shape
+)
+
+# ============================================================
+# COMBINE VALID EXPERIMENTS
+# ============================================================
+
+
+if len(experiment_data)==0:
+
+    raise RuntimeError(
+        """
+        No valid O-RAN KPI files detected.
+        Check the dataset columns.
+        """
+    )
+
+
+dataset = pd.concat(
+    experiment_data,
+    ignore_index=True
+)
+
+
+print("\nCombined dataset:")
+print(dataset.shape)
+
+print("\nFinal KPI features:")
+print(
+    dataset.columns.tolist()
+)
+
+
+
+# ============================================================
+# TEMPORAL TRAIN / VALIDATION / TEST SPLIT
+# ============================================================
+
+
+n = len(dataset)
+
+
+train_end = int(0.70*n)
+
+val_end = int(0.85*n)
+
+
+
+train_df = dataset.iloc[:train_end]
+
+val_df = dataset.iloc[
+    train_end:val_end
+]
+
+test_df = dataset.iloc[
+    val_end:
+]
+
+
+print("\nTemporal split completed.")
+
+print(
+    "Training samples:",
+    len(train_df)
+)
+
+print(
+    "Validation samples:",
+    len(val_df)
+)
+
+print(
+    "Testing samples:",
+    len(test_df)
+)
+
+
+# ============================================================
+# FEATURE SELECTION
+# ============================================================
+
+FEATURE_COLUMNS = [
+    "MCS",
+    "CQI",
+    "Buffer",
+    "PRBs",
+    "RSRQ",
+    "RSRP",
+    "SINR",
+    "BLER",
+    "Packet_Delay"
+]
+
+
+print("\nSelected LSTM State Features:")
+print(FEATURE_COLUMNS)
+
+
+
+# ============================================================
+# NORMALIZATION
+# ============================================================
+
+scaler = StandardScaler()
+
+
+train_scaled = scaler.fit_transform(
+    train_df[FEATURE_COLUMNS]
+)
+
+
+val_scaled = scaler.transform(
+    val_df[FEATURE_COLUMNS]
+)
+
+
+test_scaled = scaler.transform(
+    test_df[FEATURE_COLUMNS]
+)
+
+
+
+print("\nNormalization completed")
+
+print(
+    "Training shape:",
+    train_scaled.shape
+)
+
+print(
+    "Validation shape:",
+    val_scaled.shape
+)
+
+print(
+    "Testing shape:",
+    test_scaled.shape
+)
+
+
+# ============================================================
+# CREATE LSTM SEQUENCES
+# ============================================================
+
+
+def create_sequences(data, seq_length):
+
+    X = []
+    Y = []
+
+
+    for i in range(
+        len(data)-seq_length
+    ):
+
+        X.append(
+            data[i:i+seq_length]
+        )
+
+        Y.append(
+            data[i+seq_length]
+        )
+
+
+    return (
+        np.array(X),
+        np.array(Y)
+    )
+
+
+
+X_train, y_train = create_sequences(
+    train_scaled,
+    SEQUENCE_LENGTH
+)
+
+
+X_val, y_val = create_sequences(
+    val_scaled,
+    SEQUENCE_LENGTH
+)
+
+
+X_test, y_test = create_sequences(
+    test_scaled,
+    SEQUENCE_LENGTH
+)
+
+
+
+print("\nSequence generation completed")
+
+print(
+    "X_train:",
+    X_train.shape,
+)
+
+print(
+    "y_train:",
+    y_train.shape,
+)
+
+
+print(
+    "X_val:",
+    X_val.shape,
+)
+
+print(
+    "y_val:",
+    y_val.shape,
+)
+
+
+print(
+    "X_test:",
+    X_test.shape,
+)
+
+print(
+    "y_test:",
+    y_test.shape,
+)
+
+
+
+# ============================================================
+# PYTORCH DATASET
+# ============================================================
+
+
+class ORANDataset(Dataset):
+
+    def __init__(self,X,y):
+
+        self.X=torch.tensor(
+            X,
+            dtype=torch.float32
+        )
+
+        self.y=torch.tensor(
+            y,
+            dtype=torch.float32
+        )
+
+
+    def __len__(self):
+
+        return len(self.X)
+
+
+    def __getitem__(self,index):
+
+        return (
+            self.X[index],
+            self.y[index]
+        )
+
+
+
+train_dataset = ORANDataset(
+    X_train,
+    y_train
+)
+
+
+val_dataset = ORANDataset(
+    X_val,
+    y_val
+)
+
+
+test_dataset = ORANDataset(
+    X_test,
+    y_test
+)
+
+
+
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=True
+)
+
+
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=False
+)
+
+
+test_loader = DataLoader(
+    test_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=False
+)
+
+
+
+print("\nDataloader ready")
+
+
+
+# ============================================================
+# LSTM NETWORK
+# ============================================================
+
+
+class ORAN_LSTM(nn.Module):
+
+    def __init__(
+        self,
+        input_size,
+        hidden_size,
+        num_layers,
+        dropout
+    ):
+
+        super(ORAN_LSTM, self).__init__()
+
+
+        self.lstm = nn.LSTM(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            dropout=dropout
+        )
+
+
+        self.dropout = nn.Dropout(dropout)
+
+
+        self.fc = nn.Linear(
+            hidden_size,
+            input_size
+        )
+
+
+    def forward(self, x):
+
+        output, (hidden, cell) = self.lstm(x)
+
+
+        # last temporal state
+
+        output = output[:, -1, :]
+
+
+        output = self.dropout(output)
+
+
+        prediction = self.fc(output)
+
+
+        return prediction
+
+
+INPUT_SIZE = len(FEATURE_COLUMNS)
+
+print("Input KPI dimension:", INPUT_SIZE)
+
+
+model = ORAN_LSTM(
+    input_size=INPUT_SIZE,
+    hidden_size=256,
+    num_layers=4,
+    dropout=0.052
+).to(DEVICE)
+
+
+model = model.to(DEVICE)
+
+
+print(model)
+
+
+
+# ============================================================
+# TRAINING CONFIGURATION
+# ============================================================
+
+
+criterion = nn.MSELoss()
+
+
+optimizer = torch.optim.Adam(
+    model.parameters(),
+    lr=LEARNING_RATE
+)
+
+
+
+
+
+
+train_losses = []
+val_losses = []
+test_losses = []
+
+
+# ============================================================
+# TRAINING
+# ============================================================
+
+for epoch in range(EPOCHS):
+
+    # -----------------------------
+    # Training phase
+    # -----------------------------
+    model.train()
+
+    running_loss = 0.0
+
+
+    for X_batch, y_batch in train_loader:
+
+        X_batch = X_batch.to(DEVICE)
+        y_batch = y_batch.to(DEVICE)
+
+
+        optimizer.zero_grad()
+
+
+        prediction = model(X_batch)
+
+
+        loss = criterion(
+            prediction,
+            y_batch
+        )
+
+
+        loss.backward()
+
+        optimizer.step()
+
+
+        running_loss += loss.item()
+
+
+
+    train_loss = (
+        running_loss /
+        len(train_loader)
+    )
+
+
+
+    # -----------------------------
+    # Validation phase
+    # -----------------------------
+    model.eval()
+
+    val_loss = 0.0
+
+
+    with torch.no_grad():
+
+        for X_batch, y_batch in val_loader:
+
+            X_batch = X_batch.to(DEVICE)
+            y_batch = y_batch.to(DEVICE)
+
+
+            prediction = model(X_batch)
+
+
+            loss = criterion(
+                prediction,
+                y_batch
+            )
+
+
+            val_loss += loss.item()
+
+
+
+    val_loss /= len(val_loader)
+
+
+
+    # -----------------------------
+    # Test phase (monitoring only)
+    # -----------------------------
+    test_loss = 0.0
+
+
+    with torch.no_grad():
+
+        for X_batch, y_batch in test_loader:
+
+            X_batch = X_batch.to(DEVICE)
+            y_batch = y_batch.to(DEVICE)
+
+
+            prediction = model(X_batch)
+
+
+            loss = criterion(
+                prediction,
+                y_batch
+            )
+
+
+            test_loss += loss.item()
+
+
+
+    test_loss /= len(test_loader)
+
+
+
+    # Store losses
+
+    train_losses.append(train_loss)
+
+    val_losses.append(val_loss)
+
+    test_losses.append(test_loss)
+
+
+
+    print(
+        f"Epoch [{epoch+1}/{EPOCHS}] | "
+        f"Train Loss: {train_loss:.6f} | "
+        f"Val Loss: {val_loss:.6f} | "
+        f"Test Loss: {test_loss:.6f}"
+    )
+
+
+
+# ============================================================
+# TEST EVALUATION
+# ============================================================
+
+
+model.eval()
+
+
+predictions=[]
+targets=[]
+
+
+with torch.no_grad():
+
+    for X_batch,y_batch in test_loader:
+
+
+        X_batch=X_batch.to(DEVICE)
+
+
+        pred=model(
+            X_batch
+        )
+
+
+        predictions.append(
+            pred.cpu().numpy()
+        )
+
+
+        targets.append(
+            y_batch.numpy()
+        )
+
+
+
+predictions=np.vstack(
+    predictions
+)
+
+targets=np.vstack(
+    targets
+)
+
+
+
+# inverse scaling
+
+predictions_original = scaler.inverse_transform(
+    predictions
+)
+
+
+targets_original = scaler.inverse_transform(
+    targets
+)
+
+
+
+mae = mean_absolute_error(
+    targets_original,
+    predictions_original
+)
+
+
+rmse = np.sqrt(
+    mean_squared_error(
+        targets_original,
+        predictions_original
+    )
+)
+
+
+r2 = r2_score(
+    targets_original,
+    predictions_original
+)
+
+
+
+print("\n==============================")
+print("LSTM TEST RESULTS")
+print("==============================")
+
+print(
+    "MAE:",
+    mae
+)
+
+print(
+    "RMSE:",
+    rmse
+)
+
+print(
+    "R2:",
+    r2
+)
+
+
+# ============================================================
+# LOSS CURVE
+# ============================================================
+
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+# Times New Roman font
+mpl.rcParams['font.family'] = 'Times New Roman'
+
+FONT_SIZE = 21
+
+
+plt.figure(figsize=(10, 6))
+
+
+plt.plot(
+    train_losses,
+    linewidth=2.5,
+    label="Training"
+)
+
+plt.plot(
+    val_losses,
+    linewidth=2.5,
+    label="Validation"
+)
+
+plt.plot(
+    test_losses,
+    linewidth=2.5,
+    label="Testing"
+)
+
+
+# Axis labels
+plt.xlabel(
+    "Epoch",
+    fontsize=FONT_SIZE
+)
+
+plt.ylabel(
+    "MSE Loss",
+    fontsize=FONT_SIZE
+)
+
+
+# Tick formatting
+plt.xticks(
+    fontsize=FONT_SIZE
+)
+
+plt.yticks(
+    fontsize=FONT_SIZE
+)
+
+
+# Legend on top
+plt.legend(
+    fontsize=FONT_SIZE,
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.20),
+    ncol=3,
+    frameon=False
+)
+
+
+# Grid
+plt.grid(
+    linestyle="--",
+    linewidth=0.8,
+    alpha=0.7
+)
+
+
+# Layout adjustment
+plt.tight_layout()
+
+
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ============================================================
+# MODEL COMPARISON CONFIGURATION
+# ============================================================
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import numpy as np
+
+
+INPUT_SIZE = X_train.shape[2]
+
+OUTPUT_SIZE = y_train.shape[1]
+
+
+HIDDEN_SIZE = 128
+NUM_LAYERS = 2
+
+EPOCHS = 1
+LR = 1e-3
+
+
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available()
+    else "cpu"
+)
+
+
+print("Input dimension:", INPUT_SIZE)
+print("Output dimension:", OUTPUT_SIZE)
+print("Device:", DEVICE)
+
+
+# ============================================================
+# DATA LOADERS
+# ============================================================
+
+
+train_dataset = TensorDataset(
+    torch.tensor(X_train,dtype=torch.float32),
+    torch.tensor(y_train,dtype=torch.float32)
+)
+
+
+val_dataset = TensorDataset(
+    torch.tensor(X_val,dtype=torch.float32),
+    torch.tensor(y_val,dtype=torch.float32)
+)
+
+
+test_dataset = TensorDataset(
+    torch.tensor(X_test,dtype=torch.float32),
+    torch.tensor(y_test,dtype=torch.float32)
+)
+
+
+
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=128,
+    shuffle=True
+)
+
+
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=128
+)
+
+
+test_loader = DataLoader(
+    test_dataset,
+    batch_size=128
+)
+
+
+# ============================================================
+# STANDARD LSTM
+# ============================================================
+
+
+class LSTM_Model(nn.Module):
+
+    def __init__(self):
+
+        super().__init__()
+
+        self.lstm = nn.LSTM(
+            INPUT_SIZE,
+            HIDDEN_SIZE,
+            NUM_LAYERS,
+            batch_first=True
+        )
+
+
+        self.fc = nn.Linear(
+            HIDDEN_SIZE,
+            OUTPUT_SIZE
+        )
+
+
+    def forward(self,x):
+
+        out,_ = self.lstm(x)
+
+        out = out[:,-1,:]
+
+        return self.fc(out)
+
+
+
+# ============================================================
+# ATTENTION LSTM
+# ============================================================
+
+
+class Attention_LSTM(nn.Module):
+
+    def __init__(self):
+
+        super().__init__()
+
+
+        self.lstm = nn.LSTM(
+            INPUT_SIZE,
+            HIDDEN_SIZE,
+            NUM_LAYERS,
+            batch_first=True
+        )
+
+
+        self.attention = nn.Linear(
+            HIDDEN_SIZE,
+            1
+        )
+
+
+        self.fc = nn.Linear(
+            HIDDEN_SIZE,
+            OUTPUT_SIZE
+        )
+
+
+    def forward(self,x):
+
+        outputs,_ = self.lstm(x)
+
+
+        attention_weights = torch.softmax(
+            self.attention(outputs),
+            dim=1
+        )
+
+
+        context = torch.sum(
+            attention_weights * outputs,
+            dim=1
+        )
+
+
+        return self.fc(context)
+
+
+
+# ============================================================
+# TWO NN LSTM
+# ============================================================
+
+
+class TwoNN_LSTM(nn.Module):
+
+    def __init__(self):
+
+        super().__init__()
+
+
+        self.lstm = nn.LSTM(
+            INPUT_SIZE,
+            HIDDEN_SIZE,
+            NUM_LAYERS,
+            batch_first=True
+        )
+
+
+        self.fc = nn.Sequential(
+
+            nn.Linear(
+                HIDDEN_SIZE,
+                256
+            ),
+
+            nn.ReLU(),
+
+
+            nn.Linear(
+                256,
+                128
+            ),
+
+            nn.ReLU(),
+
+
+            nn.Linear(
+                128,
+                OUTPUT_SIZE
+            )
+        )
+
+
+
+    def forward(self,x):
+
+        out,_ = self.lstm(x)
+
+        out = out[:,-1,:]
+
+        return self.fc(out)
+
+
+
+# ============================================================
+# BiLSTM
+# ============================================================
+
+
+class BiLSTM_Model(nn.Module):
+
+    def __init__(self):
+
+        super().__init__()
+
+
+        self.lstm = nn.LSTM(
+            INPUT_SIZE,
+            HIDDEN_SIZE,
+            NUM_LAYERS,
+            batch_first=True,
+            bidirectional=True
+        )
+
+
+        self.fc = nn.Linear(
+            HIDDEN_SIZE*2,
+            OUTPUT_SIZE
+        )
+
+
+    def forward(self,x):
+
+        out,_ = self.lstm(x)
+
+
+        out = out[:,-1,:]
+
+
+        return self.fc(out)
+
+
+# ============================================================
+# MODELS
+# ============================================================
+
+
+models = {
+
+    "LSTM":
+        LSTM_Model(),
+
+    "Attention-LSTM":
+        Attention_LSTM(),
+
+    "TwoNN-LSTM":
+        TwoNN_LSTM(),
+
+    "BiLSTM":
+        BiLSTM_Model()
+}
+
+
+
+for name,model in models.items():
+
+    models[name] = model.to(DEVICE)
+
+
+    print(
+        name,
+        "parameters:",
+        sum(
+            p.numel()
+            for p in model.parameters()
+        )
+    )
+# ============================================================
+# TRAIN FUNCTION
+# ============================================================
+
+# ============================================================
+# TRAIN FUNCTION WITH TRAIN / VALIDATION / TEST METRICS
+# ============================================================
+
+criterion = nn.MSELoss()
+
+
+def evaluate_model(model, loader):
+
+    model.eval()
+
+    total_loss = 0
+
+    with torch.no_grad():
+
+        for X, y in loader:
+
+            X = X.to(DEVICE)
+            y = y.to(DEVICE)
+
+            pred = model(X)
+
+            loss = criterion(
+                pred,
+                y
+            )
+
+            total_loss += loss.item()
+
+
+    return total_loss / len(loader)
+
+
+
+def train_model(model, name):
+
+
+    optimizer = optim.Adam(
+        model.parameters(),
+        lr=LR
+    )
+
+
+    train_history = []
+    val_history = []
+    test_history = []
+
+
+    print("\n" + "="*80)
+    print("Training:", name)
+    print("="*80)
+
+
+    for epoch in range(EPOCHS):
+
+
+        model.train()
+
+        running_loss = 0
+
+
+
+        for X, y in train_loader:
+
+
+            X = X.to(DEVICE)
+            y = y.to(DEVICE)
+
+
+            optimizer.zero_grad()
+
+
+            pred = model(X)
+
+
+            loss = criterion(
+                pred,
+                y
+            )
+
+
+            loss.backward()
+
+
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(),
+                max_norm=1.0
+            )
+
+
+            optimizer.step()
+
+
+            running_loss += loss.item()
+
+
+
+        train_loss = (
+            running_loss /
+            len(train_loader)
+        )
+
+
+        # validation loss
+        val_loss = evaluate_model(
+            model,
+            val_loader
+        )
+
+
+        # testing loss
+        test_loss = evaluate_model(
+            model,
+            test_loader
+        )
+
+
+
+        train_history.append(
+            train_loss
+        )
+
+        val_history.append(
+            val_loss
+        )
+
+        test_history.append(
+            test_loss
+        )
+
+
+
+        print(
+            f"{name} | "
+            f"Epoch [{epoch+1}/{EPOCHS}] | "
+            f"Train Loss: {train_loss:.6f} | "
+            f"Val Loss: {val_loss:.6f} | "
+            f"Test Loss: {test_loss:.6f}"
+        )
+
+
+    return (
+        train_history,
+        val_history,
+        test_history
+    )
+
+
+# ============================================================
+# TRAIN ALL MODELS
+# ============================================================
+
+
+results = {}
+
+
+for name, model in models.items():
+
+    train_loss, val_loss, test_loss = train_model(
+        model.to(DEVICE),
+        name
+    )
+
+
+    results[name] = {
+
+        "train": train_loss,
+
+        "val": val_loss,
+
+        "test": test_loss
+
+    }
+
+
+print("\nTraining completed for all models.")
+
+print("\nAvailable results:")
+for model_name in results.keys():
+
+    print(model_name)
+
+
+
+
+# ============================================================
+# TEST LOSS COMPARISON
+# ============================================================
+
+plt.figure(figsize=(10,6))
+
+
+for name in results:
+
+    plt.plot(
+        results[name]["test"],
+        label=name
+    )
+
+
+plt.xlabel(
+    "Epoch",
+    fontsize=23,
+    fontname="Times New Roman"
+)
+
+
+plt.ylabel(
+    "MSE Loss",
+    fontsize=23,
+    fontname="Times New Roman"
+)
+
+
+plt.xticks(
+    fontsize=23,
+    fontname="Times New Roman"
+)
+
+
+plt.yticks(
+    fontsize=23,
+    fontname="Times New Roman"
+)
+
+
+plt.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5,1.18),
+    ncol=4,
+    fontsize=18,
+    prop={
+        "family":"Times New Roman",
+        "size":18
+    }
+)
+
+
+plt.grid()
+
+plt.tight_layout()
+
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+# ============================================================
+# LSTM OUTPUT AS PPO STATE REPRESENTATION
+# ============================================================
+
+# Obtain predicted network states from trained LSTM
+X_test_tensor = torch.tensor(X_test, dtype=torch.float32).to(DEVICE)
+model.eval()
+
+with torch.no_grad():
+
+    lstm_output = model(
+        X_test_tensor.to(DEVICE)
+    )
+
+
+# LSTM predicted state representation
+
+state_dimension = lstm_output.shape[1]
+
+
+print("\nLSTM state representation:")
+print(lstm_output.shape)
+
+
+
+# ============================================================
+# PPO MASTER AND APPRENTICE AGENTS
+# ============================================================
+
+class ActorCritic(nn.Module):
+
+    def __init__(self, state_dim, action_dim):
+
+        super().__init__()
+
+        # Actor network
+
+        self.actor = nn.Sequential(
+            nn.Linear(state_dim, 256),
+            nn.ReLU(),
+
+            nn.Linear(256,128),
+            nn.ReLU(),
+
+            nn.Linear(128, action_dim),
+            nn.Softmax(dim=-1)
+        )
+
+
+        # Critic network
+
+        self.critic = nn.Sequential(
+            nn.Linear(state_dim,256),
+            nn.ReLU(),
+
+            nn.Linear(256,128),
+            nn.ReLU(),
+
+            nn.Linear(128,1)
+        )
+
+
+    def forward(self,state):
+
+        action_prob = self.actor(state)
+
+        value = self.critic(state)
+
+        return action_prob,value
+
+
+
+# ============================================================
+# INITIALIZE MASTER AND APPRENTICE PPO
+# ============================================================
+
+ACTION_DIM = 3
+
+master_agent = ActorCritic(
+    state_dimension,
+    ACTION_DIM
+).to(DEVICE)
+
+
+
+apprentice_agent = ActorCritic(
+    state_dimension,
+    ACTION_DIM
+).to(DEVICE)
+
+
+
+# ============================================================
+# SOFT PARAMETER TRANSFER FROM MASTER TO APPRENTICE
+# ============================================================
+
+def soft_update(
+        source,
+        target,
+        tau=0.005):
+
+
+    for source_param, target_param in zip(
+        source.parameters(),
+        target.parameters()
+    ):
+
+        target_param.data.copy_(
+            tau * source_param.data
+            +
+            (1-tau) *
+            target_param.data
+        )
+
+
+
+# ============================================================
+# RESOURCE ALLOCATION DECISION
+# ============================================================
+
+def select_action(agent,state):
+
+
+    action_probability, value = agent(
+        state
+    )
+
+
+    distribution = torch.distributions.Categorical(
+        action_probability
+    )
+
+
+    action = distribution.sample()
+
+
+    log_probability = distribution.log_prob(
+        action
+    )
+
+
+    return (
+        action,
+        log_probability,
+        value
+    )
+
+
+
+# ============================================================
+# MASTER-APPRENTICE TRAINING PIPELINE
+# ============================================================
+
+TAU = 0.005
+
+EPISODE=10
+for episode in range(EPISODE):
+
+
+    # -------------------------------
+    # LSTM predicted network state
+    # -------------------------------
+
+    state = lstm_output[
+        episode % len(lstm_output)
+    ].unsqueeze(0)
+
+
+
+    # -------------------------------
+    # Master PPO decision
+    # -------------------------------
+
+    master_action, \
+    master_log_prob, \
+    master_value = select_action(
+        master_agent,
+        state
+    )
+
+
+    # Resource allocation action:
+    # RB allocation,
+    # bandwidth allocation,
+    # transmission power
+
+
+    master_resource_action = master_action
+
+
+
+    # -------------------------------
+    # Transfer master knowledge
+    # -------------------------------
+
+    soft_update(
+        master_agent,
+        apprentice_agent,
+        tau=TAU
+    )
+
+
+
+    # -------------------------------
+    # Apprentice PPO adaptation
+    # -------------------------------
+
+    apprentice_action, \
+    apprentice_log_prob, \
+    apprentice_value = select_action(
+        apprentice_agent,
+        state
+    )
+
+
+
+    apprentice_resource_action = (
+        apprentice_action
+    )
+
+
+
+    print(
+        f"Episode {episode+1}: "
+        f"Master Action={master_resource_action.item()} | "
+        f"Apprentice Action={apprentice_resource_action.item()}"
+    )
