@@ -1,0 +1,687 @@
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Scripts\python.exe E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\main.py 
+==========================================================================================
+O-RAN LSTM TRAINING
+==========================================================================================
+Device: cpu
+
+Zenodo CSV files found:
+20250328_10-10-53.csv
+20250328_09-59-25.csv
+20250331_11-50-40.csv
+20250331_11-44-52.csv
+20250328_09-35-20.csv
+20250401_09-22-28.csv
+20250401_09-19-01.csv
+20250328_09-38-18.csv
+20250328_10-01-58.csv
+20250331_11-35-21.csv
+Already exists: oran_zenodo_data\20250328_10-10-53.csv
+Already exists: oran_zenodo_data\20250328_09-59-25.csv
+Already exists: oran_zenodo_data\20250331_11-50-40.csv
+Already exists: oran_zenodo_data\20250331_11-44-52.csv
+Already exists: oran_zenodo_data\20250328_09-35-20.csv
+Already exists: oran_zenodo_data\20250401_09-22-28.csv
+Already exists: oran_zenodo_data\20250401_09-19-01.csv
+Already exists: oran_zenodo_data\20250328_09-38-18.csv
+Already exists: oran_zenodo_data\20250328_10-01-58.csv
+Already exists: oran_zenodo_data\20250331_11-35-21.csv
+
+Number of CSV files: 10
+
+==========================================================================================
+FILE: 20250328_09-35-20.csv
+==========================================================================================
+Shape: (5999, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time  phy_mcs  mac_dl_cqi  ...        se  dl_bler  delay
+0  1.743169e+12      0.0         9.0  ...  0.002000      0.0   -1.0
+1  1.743169e+12      0.0         9.0  ...  0.008747      0.0   -1.0
+2  1.743169e+12      0.0         9.0  ...  0.008747      0.0   -1.0
+3  1.743169e+12      0.0         9.0  ...  0.027413      0.0   -1.0
+4  1.743169e+12      0.0         9.0  ...  0.020667      0.0   -1.0
+
+[5 rows x 14 columns]
+
+==========================================================================================
+FILE: 20250328_09-38-18.csv
+==========================================================================================
+Shape: (5999, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time  phy_mcs  mac_dl_cqi  ...       se  dl_bler  delay
+0  1.743169e+12      0.0    8.666667  ...  0.00656      0.0   -1.0
+1  1.743169e+12      0.0    9.000000  ...  0.00656      0.0   -1.0
+2  1.743169e+12      0.0    9.000000  ...  0.02206      0.0   -1.0
+3  1.743169e+12      0.0    9.000000  ...  0.02056      0.0   -1.0
+4  1.743169e+12      0.0    9.000000  ...  0.02354      0.0   -1.0
+
+[5 rows x 14 columns]
+
+==========================================================================================
+FILE: 20250328_09-59-25.csv
+==========================================================================================
+Shape: (6000, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time  phy_mcs  mac_dl_cqi  ...        se  dl_bler  delay
+0  1.743170e+12      0.0   10.000000  ...  0.002000      0.0   -1.0
+1  1.743170e+12      0.0   10.000000  ...  0.009173      0.0   -1.0
+2  1.743170e+12      0.0   10.000000  ...  0.007173      0.0   -1.0
+3  1.743170e+12      0.0    9.666667  ...  0.027840      0.0   -1.0
+4  1.743170e+12      5.0    9.333333  ...  0.026453      0.0   -1.0
+
+[5 rows x 14 columns]
+
+==========================================================================================
+FILE: 20250328_10-01-58.csv
+==========================================================================================
+Shape: (6000, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time   phy_mcs  mac_dl_cqi  ...        se  dl_bler  delay
+0  1.743171e+12  3.000000         8.0  ...  0.002053      0.0   -1.0
+1  1.743171e+12  7.666667         8.0  ...  0.008800      0.0   -1.0
+2  1.743171e+12  7.666667         8.0  ...  0.006747      0.0   -1.0
+3  1.743171e+12  4.666667         8.0  ...  0.027413      0.0   -1.0
+4  1.743171e+12  0.000000         8.0  ...  0.020667      0.0   -1.0
+
+[5 rows x 14 columns]
+
+==========================================================================================
+FILE: 20250328_10-10-53.csv
+==========================================================================================
+Shape: (5999, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time  phy_mcs  mac_dl_cqi  ...        se  dl_bler  delay
+0  1.743171e+12      0.0         9.0  ...  0.002000      0.0   -1.0
+1  1.743171e+12      0.0         9.0  ...  0.008747      0.0   -1.0
+2  1.743171e+12      0.0         9.0  ...  0.006747      0.0   -1.0
+3  1.743171e+12      0.0         9.0  ...  0.027413      0.0   -1.0
+4  1.743171e+12      5.0         9.0  ...  0.026453      0.0   -1.0
+
+[5 rows x 14 columns]
+
+==========================================================================================
+FILE: 20250331_11-35-21.csv
+==========================================================================================
+Shape: (5850, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time   phy_mcs  mac_dl_cqi  ...        se  dl_bler  delay
+0  1.743435e+12  0.000000   10.000000  ...  0.001905      0.0   -1.0
+1  1.743435e+12  0.000000   10.000000  ...  0.009078      0.0   -1.0
+2  1.743435e+12  0.000000   10.000000  ...  0.007173      0.0   -1.0
+3  1.743435e+12  6.666667   10.333333  ...  0.027840      0.0   -1.0
+4  1.743435e+12  6.666667   10.666667  ...  0.020667      0.0   -1.0
+
+[5 rows x 14 columns]
+
+==========================================================================================
+FILE: 20250331_11-44-52.csv
+==========================================================================================
+Shape: (5956, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time   phy_mcs  mac_dl_cqi  ...        se  dl_bler  delay
+0  1.743436e+12  3.000000    8.000000  ...  0.002053      0.0   -1.0
+1  1.743436e+12  3.000000    7.666667  ...  0.008479      0.0   -1.0
+2  1.743436e+12  4.666667    7.333333  ...  0.029999      0.0   -1.0
+3  1.743436e+12  8.666667    7.000000  ...  0.033305      0.0   -1.0
+4  1.743436e+12  8.666667    7.000000  ...  0.026880      0.0   -1.0
+
+[5 rows x 14 columns]
+
+==========================================================================================
+FILE: 20250331_11-50-40.csv
+==========================================================================================
+Shape: (6000, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time   phy_mcs  mac_dl_cqi  ...        se  dl_bler  delay
+0  1.743436e+12  0.000000         9.0  ...  0.002000      0.0   -1.0
+1  1.743436e+12  5.333333         9.0  ...  0.008747      0.0   -1.0
+2  1.743436e+12  5.333333         9.0  ...  0.029413      0.0   -1.0
+3  1.743436e+12  5.333333         9.0  ...  0.033200      0.0   -1.0
+4  1.743436e+12  5.000000         9.0  ...  0.032240      0.0   -1.0
+
+[5 rows x 14 columns]
+
+==========================================================================================
+FILE: 20250401_09-19-01.csv
+==========================================================================================
+Shape: (5999, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time  phy_mcs  mac_dl_cqi  ...        se  dl_bler  delay
+0  1.743514e+12      3.0         9.0  ...  0.002053      0.0   -1.0
+1  1.743514e+12      3.0         9.0  ...  0.008800      0.0   -1.0
+2  1.743514e+12      3.0         9.0  ...  0.008800      0.0   -1.0
+3  1.743514e+12      5.0         9.0  ...  0.027413      0.0   -1.0
+4  1.743514e+12      5.0         9.0  ...  0.026453      0.0   -1.0
+
+[5 rows x 14 columns]
+
+==========================================================================================
+FILE: 20250401_09-22-28.csv
+==========================================================================================
+Shape: (5996, 14)
+
+Columns:
+ 1. time
+ 2. phy_mcs
+ 3. mac_dl_cqi
+ 4. mac_dl_ri
+ 5. mac_dl_pmi
+ 6. mac_ul_buffer
+ 7. mac_n_prb
+ 8. rsrq
+ 9. rsrp
+10. rssi
+11. dl_sinr
+12. se
+13. dl_bler
+14. delay
+
+First 5 rows:
+           time    phy_mcs  mac_dl_cqi  ...        se  dl_bler     delay
+0  1.743514e+12   5.333333         9.0  ...  0.008747      0.0 -1.000000
+1  1.743514e+12   5.333333         9.0  ...  0.029413      0.0 -1.000000
+2  1.743514e+12   5.000000         9.0  ...  0.033200      0.0 -1.000000
+3  1.743514e+12   5.000000         9.0  ...  0.032240      0.0 -1.000000
+4  1.743514e+12  11.000000         9.0  ...  0.079280      0.0  5.633116
+
+[5 rows x 14 columns]
+Number of CSV files: 0
+
+Processing: 20250328_09-35-20.csv
+Original shape: (5999, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Processing: 20250328_09-38-18.csv
+Original shape: (5999, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Processing: 20250328_09-59-25.csv
+Original shape: (6000, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Processing: 20250328_10-01-58.csv
+Original shape: (6000, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Processing: 20250328_10-10-53.csv
+Original shape: (5999, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Processing: 20250331_11-35-21.csv
+Original shape: (5850, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Processing: 20250331_11-44-52.csv
+Original shape: (5956, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Processing: 20250331_11-50-40.csv
+Original shape: (6000, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Processing: 20250401_09-19-01.csv
+Original shape: (5999, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Processing: 20250401_09-22-28.csv
+Original shape: (5996, 14)
+Detected KPIs: ['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+================================
+Valid experiments: 10
+================================
+Experiment 1: (5999, 10)
+Experiment 2: (5999, 10)
+Experiment 3: (6000, 10)
+Experiment 4: (6000, 10)
+Experiment 5: (5999, 10)
+Experiment 6: (5850, 10)
+Experiment 7: (5956, 10)
+Experiment 8: (6000, 10)
+Experiment 9: (5999, 10)
+Experiment 10: (5996, 10)
+
+Combined O-RAN KPI Dataset
+(59798, 10)
+
+Final Features:
+['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay', 'experiment_id']
+
+Temporal split completed
+Training: (41858, 10)
+Validation: (8970, 10)
+Testing: (8970, 10)
+
+Combined dataset:
+(59798, 10)
+
+Final KPI features:
+['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay', 'experiment_id']
+
+Temporal split completed.
+Training samples: 41858
+Validation samples: 8970
+Testing samples: 8970
+
+Selected LSTM State Features:
+['MCS', 'CQI', 'Buffer', 'PRBs', 'RSRQ', 'RSRP', 'SINR', 'BLER', 'Packet_Delay']
+
+Normalization completed
+Training shape: (41858, 9)
+Validation shape: (8970, 9)
+Testing shape: (8970, 9)
+
+Sequence generation completed
+X_train: (41838, 20, 9)
+y_train: (41838, 9)
+X_val: (8950, 20, 9)
+y_val: (8950, 9)
+X_test: (8950, 20, 9)
+y_test: (8950, 9)
+
+Dataloader ready
+Input KPI dimension: 9
+ORAN_LSTM(
+  (lstm): LSTM(9, 256, num_layers=4, batch_first=True, dropout=0.052)
+  (dropout): Dropout(p=0.052, inplace=False)
+  (fc): Linear(in_features=256, out_features=9, bias=True)
+)
+Epoch [1/1] | Train Loss: 0.353407 | Val Loss: 0.179364 | Test Loss: 0.194468
+
+==============================
+LSTM TEST RESULTS
+==============================
+MAE: 4.012897491455078
+RMSE: 9.430104977295453
+R2: 0.49336370825767517
+Input dimension: 9
+Output dimension: 9
+Device: cpu
+LSTM parameters: 204425
+Attention-LSTM parameters: 204554
+TwoNN-LSTM parameters: 270345
+BiLSTM parameters: 539913
+
+================================================================================
+Training: LSTM
+================================================================================
+LSTM | Epoch [1/50] | Train Loss: 0.287829 | Val Loss: 0.131224 | Test Loss: 0.150694
+LSTM | Epoch [2/50] | Train Loss: 0.123042 | Val Loss: 0.112934 | Test Loss: 0.119242
+LSTM | Epoch [3/50] | Train Loss: 0.109036 | Val Loss: 0.106817 | Test Loss: 0.111656
+LSTM | Epoch [4/50] | Train Loss: 0.104448 | Val Loss: 0.105961 | Test Loss: 0.111445
+LSTM | Epoch [5/50] | Train Loss: 0.100854 | Val Loss: 0.104453 | Test Loss: 0.108343
+LSTM | Epoch [6/50] | Train Loss: 0.098614 | Val Loss: 0.103114 | Test Loss: 0.107801
+LSTM | Epoch [7/50] | Train Loss: 0.095230 | Val Loss: 0.101548 | Test Loss: 0.106393
+LSTM | Epoch [8/50] | Train Loss: 0.093331 | Val Loss: 0.105630 | Test Loss: 0.108773
+LSTM | Epoch [9/50] | Train Loss: 0.092394 | Val Loss: 0.100725 | Test Loss: 0.103351
+LSTM | Epoch [10/50] | Train Loss: 0.089900 | Val Loss: 0.102956 | Test Loss: 0.105296
+LSTM | Epoch [11/50] | Train Loss: 0.089129 | Val Loss: 0.106999 | Test Loss: 0.110584
+LSTM | Epoch [12/50] | Train Loss: 0.088575 | Val Loss: 0.101258 | Test Loss: 0.107424
+LSTM | Epoch [13/50] | Train Loss: 0.086855 | Val Loss: 0.100544 | Test Loss: 0.105805
+LSTM | Epoch [14/50] | Train Loss: 0.084923 | Val Loss: 0.101551 | Test Loss: 0.107550
+LSTM | Epoch [15/50] | Train Loss: 0.083654 | Val Loss: 0.102785 | Test Loss: 0.106585
+LSTM | Epoch [16/50] | Train Loss: 0.082329 | Val Loss: 0.100350 | Test Loss: 0.104909
+LSTM | Epoch [17/50] | Train Loss: 0.082393 | Val Loss: 0.103668 | Test Loss: 0.103880
+LSTM | Epoch [18/50] | Train Loss: 0.080518 | Val Loss: 0.101011 | Test Loss: 0.104551
+LSTM | Epoch [19/50] | Train Loss: 0.078464 | Val Loss: 0.101598 | Test Loss: 0.108500
+LSTM | Epoch [20/50] | Train Loss: 0.079100 | Val Loss: 0.100116 | Test Loss: 0.105282
+LSTM | Epoch [21/50] | Train Loss: 0.076962 | Val Loss: 0.103498 | Test Loss: 0.108390
+LSTM | Epoch [22/50] | Train Loss: 0.075802 | Val Loss: 0.102910 | Test Loss: 0.107010
+LSTM | Epoch [23/50] | Train Loss: 0.074255 | Val Loss: 0.105238 | Test Loss: 0.112187
+LSTM | Epoch [24/50] | Train Loss: 0.074744 | Val Loss: 0.101745 | Test Loss: 0.107091
+LSTM | Epoch [25/50] | Train Loss: 0.073047 | Val Loss: 0.107033 | Test Loss: 0.116440
+LSTM | Epoch [26/50] | Train Loss: 0.071963 | Val Loss: 0.107166 | Test Loss: 0.111813
+LSTM | Epoch [27/50] | Train Loss: 0.070356 | Val Loss: 0.105639 | Test Loss: 0.111184
+LSTM | Epoch [28/50] | Train Loss: 0.069664 | Val Loss: 0.104969 | Test Loss: 0.111520
+LSTM | Epoch [29/50] | Train Loss: 0.068196 | Val Loss: 0.104181 | Test Loss: 0.112164
+LSTM | Epoch [30/50] | Train Loss: 0.066474 | Val Loss: 0.107010 | Test Loss: 0.115568
+LSTM | Epoch [31/50] | Train Loss: 0.065556 | Val Loss: 0.109273 | Test Loss: 0.116386
+LSTM | Epoch [32/50] | Train Loss: 0.064627 | Val Loss: 0.106222 | Test Loss: 0.115255
+LSTM | Epoch [33/50] | Train Loss: 0.063373 | Val Loss: 0.108446 | Test Loss: 0.116015
+LSTM | Epoch [34/50] | Train Loss: 0.062372 | Val Loss: 0.111552 | Test Loss: 0.124673
+LSTM | Epoch [35/50] | Train Loss: 0.061167 | Val Loss: 0.109595 | Test Loss: 0.122781
+LSTM | Epoch [36/50] | Train Loss: 0.059740 | Val Loss: 0.109655 | Test Loss: 0.119507
+LSTM | Epoch [37/50] | Train Loss: 0.058688 | Val Loss: 0.114786 | Test Loss: 0.125787
+LSTM | Epoch [38/50] | Train Loss: 0.057984 | Val Loss: 0.114644 | Test Loss: 0.125597
+LSTM | Epoch [39/50] | Train Loss: 0.057573 | Val Loss: 0.113156 | Test Loss: 0.126419
+LSTM | Epoch [40/50] | Train Loss: 0.056432 | Val Loss: 0.117462 | Test Loss: 0.127543
+LSTM | Epoch [41/50] | Train Loss: 0.055407 | Val Loss: 0.116054 | Test Loss: 0.129204
+LSTM | Epoch [42/50] | Train Loss: 0.054518 | Val Loss: 0.113983 | Test Loss: 0.126660
+LSTM | Epoch [43/50] | Train Loss: 0.053556 | Val Loss: 0.118092 | Test Loss: 0.131192
+LSTM | Epoch [44/50] | Train Loss: 0.053209 | Val Loss: 0.116427 | Test Loss: 0.129736
+LSTM | Epoch [45/50] | Train Loss: 0.052701 | Val Loss: 0.121243 | Test Loss: 0.133357
+LSTM | Epoch [46/50] | Train Loss: 0.050557 | Val Loss: 0.120882 | Test Loss: 0.130865
+LSTM | Epoch [47/50] | Train Loss: 0.050724 | Val Loss: 0.121736 | Test Loss: 0.129884
+LSTM | Epoch [48/50] | Train Loss: 0.049186 | Val Loss: 0.122759 | Test Loss: 0.135458
+LSTM | Epoch [49/50] | Train Loss: 0.048361 | Val Loss: 0.127669 | Test Loss: 0.137736
+LSTM | Epoch [50/50] | Train Loss: 0.047854 | Val Loss: 0.124903 | Test Loss: 0.133823
+
+================================================================================
+Training: Attention-LSTM
+================================================================================
+Attention-LSTM | Epoch [1/50] | Train Loss: 0.406510 | Val Loss: 0.167487 | Test Loss: 0.193971
+Attention-LSTM | Epoch [2/50] | Train Loss: 0.143359 | Val Loss: 0.115144 | Test Loss: 0.126343
+Attention-LSTM | Epoch [3/50] | Train Loss: 0.117559 | Val Loss: 0.109064 | Test Loss: 0.114464
+Attention-LSTM | Epoch [4/50] | Train Loss: 0.110276 | Val Loss: 0.106820 | Test Loss: 0.114350
+Attention-LSTM | Epoch [5/50] | Train Loss: 0.104425 | Val Loss: 0.102301 | Test Loss: 0.108372
+Attention-LSTM | Epoch [6/50] | Train Loss: 0.102063 | Val Loss: 0.102794 | Test Loss: 0.110920
+Attention-LSTM | Epoch [7/50] | Train Loss: 0.099340 | Val Loss: 0.101659 | Test Loss: 0.108981
+Attention-LSTM | Epoch [8/50] | Train Loss: 0.097222 | Val Loss: 0.098939 | Test Loss: 0.106080
+Attention-LSTM | Epoch [9/50] | Train Loss: 0.095005 | Val Loss: 0.102703 | Test Loss: 0.108609
+Attention-LSTM | Epoch [10/50] | Train Loss: 0.093741 | Val Loss: 0.099951 | Test Loss: 0.107405
+Attention-LSTM | Epoch [11/50] | Train Loss: 0.092794 | Val Loss: 0.100773 | Test Loss: 0.106542
+Attention-LSTM | Epoch [12/50] | Train Loss: 0.090866 | Val Loss: 0.099759 | Test Loss: 0.107141
+Attention-LSTM | Epoch [13/50] | Train Loss: 0.089366 | Val Loss: 0.098783 | Test Loss: 0.105023
+Attention-LSTM | Epoch [14/50] | Train Loss: 0.088377 | Val Loss: 0.101227 | Test Loss: 0.106843
+Attention-LSTM | Epoch [15/50] | Train Loss: 0.086823 | Val Loss: 0.100662 | Test Loss: 0.104620
+Attention-LSTM | Epoch [16/50] | Train Loss: 0.086508 | Val Loss: 0.099800 | Test Loss: 0.104751
+Attention-LSTM | Epoch [17/50] | Train Loss: 0.085362 | Val Loss: 0.100278 | Test Loss: 0.106052
+Attention-LSTM | Epoch [18/50] | Train Loss: 0.083950 | Val Loss: 0.097002 | Test Loss: 0.104023
+Attention-LSTM | Epoch [19/50] | Train Loss: 0.082693 | Val Loss: 0.101198 | Test Loss: 0.108445
+Attention-LSTM | Epoch [20/50] | Train Loss: 0.082198 | Val Loss: 0.098156 | Test Loss: 0.104749
+Attention-LSTM | Epoch [21/50] | Train Loss: 0.081242 | Val Loss: 0.099428 | Test Loss: 0.104031
+Attention-LSTM | Epoch [22/50] | Train Loss: 0.081175 | Val Loss: 0.100204 | Test Loss: 0.105031
+Attention-LSTM | Epoch [23/50] | Train Loss: 0.080390 | Val Loss: 0.098075 | Test Loss: 0.105680
+Attention-LSTM | Epoch [24/50] | Train Loss: 0.080901 | Val Loss: 0.100091 | Test Loss: 0.105415
+Attention-LSTM | Epoch [25/50] | Train Loss: 0.076956 | Val Loss: 0.100311 | Test Loss: 0.107102
+Attention-LSTM | Epoch [26/50] | Train Loss: 0.076584 | Val Loss: 0.099235 | Test Loss: 0.107823
+Attention-LSTM | Epoch [27/50] | Train Loss: 0.076875 | Val Loss: 0.099906 | Test Loss: 0.105449
+Attention-LSTM | Epoch [28/50] | Train Loss: 0.073602 | Val Loss: 0.100306 | Test Loss: 0.106356
+Attention-LSTM | Epoch [29/50] | Train Loss: 0.072313 | Val Loss: 0.102286 | Test Loss: 0.111524
+Attention-LSTM | Epoch [30/50] | Train Loss: 0.071300 | Val Loss: 0.101757 | Test Loss: 0.115242
+Attention-LSTM | Epoch [31/50] | Train Loss: 0.070430 | Val Loss: 0.102364 | Test Loss: 0.110184
+Attention-LSTM | Epoch [32/50] | Train Loss: 0.069430 | Val Loss: 0.105924 | Test Loss: 0.118865
+Attention-LSTM | Epoch [33/50] | Train Loss: 0.070146 | Val Loss: 0.101042 | Test Loss: 0.112454
+Attention-LSTM | Epoch [34/50] | Train Loss: 0.067267 | Val Loss: 0.106127 | Test Loss: 0.115313
+Attention-LSTM | Epoch [35/50] | Train Loss: 0.066217 | Val Loss: 0.104815 | Test Loss: 0.120330
+Attention-LSTM | Epoch [36/50] | Train Loss: 0.067810 | Val Loss: 0.105987 | Test Loss: 0.117185
+Attention-LSTM | Epoch [37/50] | Train Loss: 0.064105 | Val Loss: 0.104274 | Test Loss: 0.117026
+Attention-LSTM | Epoch [38/50] | Train Loss: 0.063163 | Val Loss: 0.105476 | Test Loss: 0.116177
+Attention-LSTM | Epoch [39/50] | Train Loss: 0.061676 | Val Loss: 0.105866 | Test Loss: 0.120356
+Attention-LSTM | Epoch [40/50] | Train Loss: 0.060670 | Val Loss: 0.103964 | Test Loss: 0.114148
+Attention-LSTM | Epoch [41/50] | Train Loss: 0.060219 | Val Loss: 0.107795 | Test Loss: 0.120199
+Attention-LSTM | Epoch [42/50] | Train Loss: 0.059641 | Val Loss: 0.106378 | Test Loss: 0.117161
+Attention-LSTM | Epoch [43/50] | Train Loss: 0.058460 | Val Loss: 0.107781 | Test Loss: 0.119194
+Attention-LSTM | Epoch [44/50] | Train Loss: 0.057077 | Val Loss: 0.110222 | Test Loss: 0.120472
+Attention-LSTM | Epoch [45/50] | Train Loss: 0.056502 | Val Loss: 0.110687 | Test Loss: 0.122704
+Attention-LSTM | Epoch [46/50] | Train Loss: 0.058121 | Val Loss: 0.111661 | Test Loss: 0.123283
+Attention-LSTM | Epoch [47/50] | Train Loss: 0.055966 | Val Loss: 0.112349 | Test Loss: 0.123143
+Attention-LSTM | Epoch [48/50] | Train Loss: 0.054028 | Val Loss: 0.113701 | Test Loss: 0.125790
+Attention-LSTM | Epoch [49/50] | Train Loss: 0.053394 | Val Loss: 0.114403 | Test Loss: 0.122581
+Attention-LSTM | Epoch [50/50] | Train Loss: 0.052457 | Val Loss: 0.116513 | Test Loss: 0.124893
+
+================================================================================
+Training: TwoNN-LSTM
+================================================================================
+TwoNN-LSTM | Epoch [1/50] | Train Loss: 0.304613 | Val Loss: 0.146034 | Test Loss: 0.164867
+TwoNN-LSTM | Epoch [2/50] | Train Loss: 0.127038 | Val Loss: 0.130648 | Test Loss: 0.139302
+TwoNN-LSTM | Epoch [3/50] | Train Loss: 0.111846 | Val Loss: 0.110520 | Test Loss: 0.118485
+TwoNN-LSTM | Epoch [4/50] | Train Loss: 0.103217 | Val Loss: 0.107925 | Test Loss: 0.112444
+TwoNN-LSTM | Epoch [5/50] | Train Loss: 0.098517 | Val Loss: 0.107626 | Test Loss: 0.110019
+TwoNN-LSTM | Epoch [6/50] | Train Loss: 0.098078 | Val Loss: 0.105655 | Test Loss: 0.108010
+TwoNN-LSTM | Epoch [7/50] | Train Loss: 0.095441 | Val Loss: 0.102894 | Test Loss: 0.106625
+TwoNN-LSTM | Epoch [8/50] | Train Loss: 0.093110 | Val Loss: 0.105544 | Test Loss: 0.108540
+TwoNN-LSTM | Epoch [9/50] | Train Loss: 0.091440 | Val Loss: 0.103324 | Test Loss: 0.106502
+TwoNN-LSTM | Epoch [10/50] | Train Loss: 0.089696 | Val Loss: 0.103013 | Test Loss: 0.108066
+TwoNN-LSTM | Epoch [11/50] | Train Loss: 0.088810 | Val Loss: 0.104480 | Test Loss: 0.106855
+TwoNN-LSTM | Epoch [12/50] | Train Loss: 0.086869 | Val Loss: 0.105696 | Test Loss: 0.108300
+TwoNN-LSTM | Epoch [13/50] | Train Loss: 0.086078 | Val Loss: 0.103184 | Test Loss: 0.106640
+TwoNN-LSTM | Epoch [14/50] | Train Loss: 0.085925 | Val Loss: 0.104893 | Test Loss: 0.110820
+TwoNN-LSTM | Epoch [15/50] | Train Loss: 0.084051 | Val Loss: 0.103609 | Test Loss: 0.104696
+TwoNN-LSTM | Epoch [16/50] | Train Loss: 0.082213 | Val Loss: 0.107807 | Test Loss: 0.107776
+TwoNN-LSTM | Epoch [17/50] | Train Loss: 0.081050 | Val Loss: 0.104257 | Test Loss: 0.105553
+TwoNN-LSTM | Epoch [18/50] | Train Loss: 0.079983 | Val Loss: 0.104675 | Test Loss: 0.107148
+TwoNN-LSTM | Epoch [19/50] | Train Loss: 0.079244 | Val Loss: 0.103597 | Test Loss: 0.107208
+TwoNN-LSTM | Epoch [20/50] | Train Loss: 0.077882 | Val Loss: 0.103988 | Test Loss: 0.106651
+TwoNN-LSTM | Epoch [21/50] | Train Loss: 0.076645 | Val Loss: 0.103393 | Test Loss: 0.109719
+TwoNN-LSTM | Epoch [22/50] | Train Loss: 0.074990 | Val Loss: 0.104363 | Test Loss: 0.107574
+TwoNN-LSTM | Epoch [23/50] | Train Loss: 0.073526 | Val Loss: 0.109288 | Test Loss: 0.119293
+TwoNN-LSTM | Epoch [24/50] | Train Loss: 0.072939 | Val Loss: 0.107498 | Test Loss: 0.113958
+TwoNN-LSTM | Epoch [25/50] | Train Loss: 0.071390 | Val Loss: 0.107025 | Test Loss: 0.115035
+TwoNN-LSTM | Epoch [26/50] | Train Loss: 0.070013 | Val Loss: 0.105721 | Test Loss: 0.113806
+TwoNN-LSTM | Epoch [27/50] | Train Loss: 0.068344 | Val Loss: 0.108247 | Test Loss: 0.115389
+TwoNN-LSTM | Epoch [28/50] | Train Loss: 0.066677 | Val Loss: 0.114877 | Test Loss: 0.122043
+TwoNN-LSTM | Epoch [29/50] | Train Loss: 0.065986 | Val Loss: 0.110041 | Test Loss: 0.120475
+TwoNN-LSTM | Epoch [30/50] | Train Loss: 0.065684 | Val Loss: 0.111518 | Test Loss: 0.124712
+TwoNN-LSTM | Epoch [31/50] | Train Loss: 0.063206 | Val Loss: 0.109891 | Test Loss: 0.116994
+TwoNN-LSTM | Epoch [32/50] | Train Loss: 0.061489 | Val Loss: 0.110416 | Test Loss: 0.118723
+TwoNN-LSTM | Epoch [33/50] | Train Loss: 0.061010 | Val Loss: 0.112803 | Test Loss: 0.119798
+TwoNN-LSTM | Epoch [34/50] | Train Loss: 0.059997 | Val Loss: 0.118475 | Test Loss: 0.132746
+TwoNN-LSTM | Epoch [35/50] | Train Loss: 0.059496 | Val Loss: 0.112136 | Test Loss: 0.121688
+TwoNN-LSTM | Epoch [36/50] | Train Loss: 0.057838 | Val Loss: 0.116560 | Test Loss: 0.124705
+TwoNN-LSTM | Epoch [37/50] | Train Loss: 0.056417 | Val Loss: 0.116462 | Test Loss: 0.125705
+TwoNN-LSTM | Epoch [38/50] | Train Loss: 0.055964 | Val Loss: 0.116936 | Test Loss: 0.122873
+TwoNN-LSTM | Epoch [39/50] | Train Loss: 0.055046 | Val Loss: 0.117433 | Test Loss: 0.125465
+TwoNN-LSTM | Epoch [40/50] | Train Loss: 0.054950 | Val Loss: 0.115969 | Test Loss: 0.125161
+TwoNN-LSTM | Epoch [41/50] | Train Loss: 0.053120 | Val Loss: 0.119670 | Test Loss: 0.127022
+TwoNN-LSTM | Epoch [42/50] | Train Loss: 0.051647 | Val Loss: 0.117456 | Test Loss: 0.123626
+TwoNN-LSTM | Epoch [43/50] | Train Loss: 0.050395 | Val Loss: 0.119319 | Test Loss: 0.124887
+TwoNN-LSTM | Epoch [44/50] | Train Loss: 0.049448 | Val Loss: 0.127347 | Test Loss: 0.135614
+TwoNN-LSTM | Epoch [45/50] | Train Loss: 0.049815 | Val Loss: 0.128917 | Test Loss: 0.136204
+TwoNN-LSTM | Epoch [46/50] | Train Loss: 0.048383 | Val Loss: 0.126504 | Test Loss: 0.134795
+TwoNN-LSTM | Epoch [47/50] | Train Loss: 0.047137 | Val Loss: 0.124593 | Test Loss: 0.137949
+TwoNN-LSTM | Epoch [48/50] | Train Loss: 0.046526 | Val Loss: 0.124492 | Test Loss: 0.131985
+TwoNN-LSTM | Epoch [49/50] | Train Loss: 0.045628 | Val Loss: 0.125250 | Test Loss: 0.136194
+TwoNN-LSTM | Epoch [50/50] | Train Loss: 0.044787 | Val Loss: 0.124040 | Test Loss: 0.132965
+
+================================================================================
+Training: BiLSTM
+================================================================================
+BiLSTM | Epoch [1/50] | Train Loss: 0.234207 | Val Loss: 0.128221 | Test Loss: 0.146975
+BiLSTM | Epoch [2/50] | Train Loss: 0.121318 | Val Loss: 0.115497 | Test Loss: 0.125590
+BiLSTM | Epoch [3/50] | Train Loss: 0.109109 | Val Loss: 0.106200 | Test Loss: 0.112226
+BiLSTM | Epoch [4/50] | Train Loss: 0.101769 | Val Loss: 0.103900 | Test Loss: 0.107662
+BiLSTM | Epoch [5/50] | Train Loss: 0.097822 | Val Loss: 0.102528 | Test Loss: 0.107991
+BiLSTM | Epoch [6/50] | Train Loss: 0.095578 | Val Loss: 0.101973 | Test Loss: 0.108461
+BiLSTM | Epoch [7/50] | Train Loss: 0.093310 | Val Loss: 0.103393 | Test Loss: 0.106072
+BiLSTM | Epoch [8/50] | Train Loss: 0.090782 | Val Loss: 0.101646 | Test Loss: 0.106584
+BiLSTM | Epoch [9/50] | Train Loss: 0.089455 | Val Loss: 0.102111 | Test Loss: 0.105080
+BiLSTM | Epoch [10/50] | Train Loss: 0.088689 | Val Loss: 0.100220 | Test Loss: 0.103699
+BiLSTM | Epoch [11/50] | Train Loss: 0.086620 | Val Loss: 0.103761 | Test Loss: 0.108033
+BiLSTM | Epoch [12/50] | Train Loss: 0.086092 | Val Loss: 0.099972 | Test Loss: 0.103423
+BiLSTM | Epoch [13/50] | Train Loss: 0.083820 | Val Loss: 0.103118 | Test Loss: 0.107453
+BiLSTM | Epoch [14/50] | Train Loss: 0.082371 | Val Loss: 0.100041 | Test Loss: 0.102749
+BiLSTM | Epoch [15/50] | Train Loss: 0.080705 | Val Loss: 0.101493 | Test Loss: 0.105887
+BiLSTM | Epoch [16/50] | Train Loss: 0.079120 | Val Loss: 0.100977 | Test Loss: 0.108073
+BiLSTM | Epoch [17/50] | Train Loss: 0.078417 | Val Loss: 0.099255 | Test Loss: 0.108928
+BiLSTM | Epoch [18/50] | Train Loss: 0.077537 | Val Loss: 0.101252 | Test Loss: 0.107323
+BiLSTM | Epoch [19/50] | Train Loss: 0.076847 | Val Loss: 0.100568 | Test Loss: 0.106001
+BiLSTM | Epoch [20/50] | Train Loss: 0.075858 | Val Loss: 0.100980 | Test Loss: 0.106466
+BiLSTM | Epoch [21/50] | Train Loss: 0.073645 | Val Loss: 0.101716 | Test Loss: 0.108179
+BiLSTM | Epoch [22/50] | Train Loss: 0.071545 | Val Loss: 0.101997 | Test Loss: 0.107225
+BiLSTM | Epoch [23/50] | Train Loss: 0.070506 | Val Loss: 0.104489 | Test Loss: 0.111982
+BiLSTM | Epoch [24/50] | Train Loss: 0.069648 | Val Loss: 0.103745 | Test Loss: 0.111322
+BiLSTM | Epoch [25/50] | Train Loss: 0.068315 | Val Loss: 0.105791 | Test Loss: 0.113174
+BiLSTM | Epoch [26/50] | Train Loss: 0.067649 | Val Loss: 0.107323 | Test Loss: 0.112865
+BiLSTM | Epoch [27/50] | Train Loss: 0.065496 | Val Loss: 0.109094 | Test Loss: 0.117997
+BiLSTM | Epoch [28/50] | Train Loss: 0.063564 | Val Loss: 0.106564 | Test Loss: 0.114964
+BiLSTM | Epoch [29/50] | Train Loss: 0.062204 | Val Loss: 0.109443 | Test Loss: 0.119898
+BiLSTM | Epoch [30/50] | Train Loss: 0.060444 | Val Loss: 0.110110 | Test Loss: 0.119300
+BiLSTM | Epoch [31/50] | Train Loss: 0.059008 | Val Loss: 0.114816 | Test Loss: 0.120858
+BiLSTM | Epoch [32/50] | Train Loss: 0.057808 | Val Loss: 0.110753 | Test Loss: 0.120501
+BiLSTM | Epoch [33/50] | Train Loss: 0.056121 | Val Loss: 0.115974 | Test Loss: 0.128147
+BiLSTM | Epoch [34/50] | Train Loss: 0.055263 | Val Loss: 0.117002 | Test Loss: 0.128857
+BiLSTM | Epoch [35/50] | Train Loss: 0.053246 | Val Loss: 0.117200 | Test Loss: 0.127516
+BiLSTM | Epoch [36/50] | Train Loss: 0.053110 | Val Loss: 0.117028 | Test Loss: 0.128397
+BiLSTM | Epoch [37/50] | Train Loss: 0.051973 | Val Loss: 0.116008 | Test Loss: 0.127857
+BiLSTM | Epoch [38/50] | Train Loss: 0.050733 | Val Loss: 0.119437 | Test Loss: 0.130857
+BiLSTM | Epoch [39/50] | Train Loss: 0.048825 | Val Loss: 0.124490 | Test Loss: 0.133495
+BiLSTM | Epoch [40/50] | Train Loss: 0.046754 | Val Loss: 0.119961 | Test Loss: 0.130786
+BiLSTM | Epoch [41/50] | Train Loss: 0.045872 | Val Loss: 0.119408 | Test Loss: 0.129627
+BiLSTM | Epoch [42/50] | Train Loss: 0.045110 | Val Loss: 0.122883 | Test Loss: 0.133484
+BiLSTM | Epoch [43/50] | Train Loss: 0.044040 | Val Loss: 0.124523 | Test Loss: 0.136246
+BiLSTM | Epoch [44/50] | Train Loss: 0.043520 | Val Loss: 0.125910 | Test Loss: 0.136653
+BiLSTM | Epoch [45/50] | Train Loss: 0.042201 | Val Loss: 0.127798 | Test Loss: 0.136507
+BiLSTM | Epoch [46/50] | Train Loss: 0.042806 | Val Loss: 0.126783 | Test Loss: 0.136893
+BiLSTM | Epoch [47/50] | Train Loss: 0.042330 | Val Loss: 0.126494 | Test Loss: 0.135896
+BiLSTM | Epoch [48/50] | Train Loss: 0.040935 | Val Loss: 0.128761 | Test Loss: 0.137820
+BiLSTM | Epoch [49/50] | Train Loss: 0.040152 | Val Loss: 0.129598 | Test Loss: 0.139433
+BiLSTM | Epoch [50/50] | Train Loss: 0.038321 | Val Loss: 0.130201 | Test Loss: 0.139301
+
+Training completed for all models.
+
+Available results:
+LSTM
+Attention-LSTM
+TwoNN-LSTM
+BiLSTM
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+Traceback (most recent call last):
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\main.py", line 2023, in <module>
+    X_test_tensor.to(DEVICE)
+    ^^^^^^^^^^^^^
+NameError: name 'X_test_tensor' is not defined
+
+Process finished with exit code 1
