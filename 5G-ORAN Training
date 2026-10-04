@@ -1,0 +1,968 @@
+#conda create -n oran_py5chesim python=3.8 -y
+#conda activate oran_py5chesim
+
+#pip install numpy pandas scipy scikit-learn matplotlib openpyxl
+#pip install torch torchvision torchaudio
+#pip install simpy
+
+
+from pathlib import Path
+import torch
+
+# ============================================================
+# PROJECT PATHS
+# ============================================================
+
+PROJECT_DIR = Path(__file__).resolve().parent
+
+PY5CHESIM_DIR = PROJECT_DIR / "py5chesim"
+
+# Your previously used dataset
+DATASET_PATH = PROJECT_DIR / "Lower_Layer_Data.db"
+
+OUTPUT_DIR = PROJECT_DIR / "oran_results"
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+MODEL_DIR = OUTPUT_DIR / "models"
+MODEL_DIR.mkdir(exist_ok=True)
+
+FIGURE_DIR = OUTPUT_DIR / "figures"
+FIGURE_DIR.mkdir(exist_ok=True)
+
+# ============================================================
+# DATASET
+# ============================================================
+
+TABLE_NAME = "lower_layer_data"
+
+# LSTM sequence length
+SEQ_LEN = 10
+
+# Number of future states predicted
+PREDICTION_HORIZON = 1
+
+# ============================================================
+# LSTM
+# ============================================================
+
+LSTM_HIDDEN = 64
+LSTM_LAYERS = 2
+LSTM_DROPOUT = 0.20
+
+LSTM_EPOCHS = 3
+LSTM_BATCH_SIZE = 128
+LSTM_LR = 1e-3
+
+# ============================================================
+# PPO
+# ============================================================
+
+STATE_DIM = 5
+ACTION_DIM = 2
+
+GAMMA = 0.99
+GAE_LAMBDA = 0.95
+
+PPO_LR = 3e-4
+
+PPO_EPOCHS = 10
+PPO_CLIP = 0.20
+
+ENTROPY_COEF = 0.01
+VALUE_COEF = 0.50
+
+KL_COEF = 0.05
+
+# ============================================================
+# TRANSFER LEARNING
+# ============================================================
+
+SOFT_UPDATE_TAU = 0.01
+TRANSFER_INTERVAL = 10
+
+# ============================================================
+# PY5CHESIM
+# ============================================================
+
+BANDWIDTH_MHZ = 10
+FREQUENCY_RANGE = "FR1"
+
+SIM_TIME_MS = 6000
+MEASUREMENT_INTERVAL_MS = 100
+
+INTER_SLICE_GRANULARITY_MS = 30
+
+# eMBB / uRLLC
+EMBB_USERS = 10
+URLLC_USERS = 10
+
+# ============================================================
+# DEVICE
+# ============================================================
+
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
+
+print("Device:", DEVICE)
+print("Dataset:", DATASET_PATH)
+print("Py5cheSim:", PY5CHESIM_DIR)
+
+import sqlite3
+import numpy as np
+import pandas as pd
+
+from oran_config import (
+    DATASET_PATH,
+    TABLE_NAME,
+    SEQ_LEN,
+)
+
+
+def load_sqlite_dataset():
+
+    if not DATASET_PATH.exists():
+        raise FileNotFoundError(
+            f"Dataset not found:\n{DATASET_PATH}"
+        )
+
+    connection = sqlite3.connect(DATASET_PATH)
+
+    tables = pd.read_sql(
+        "SELECT name FROM sqlite_master "
+        "WHERE type='table';",
+        connection
+    )
+
+    print("\nAvailable tables:")
+    print(tables)
+
+    df = pd.read_sql(
+        f"SELECT * FROM {TABLE_NAME}",
+        connection
+    )
+
+    connection.close()
+
+    print("\nDataset shape:", df.shape)
+    print("\nDataset columns:")
+    print(df.columns.tolist())
+
+    return df
+
+
+def find_column(df, candidates):
+
+    normalized = {
+        str(c).lower().replace("_", "").replace("-", ""): c
+        for c in df.columns
+    }
+
+    for candidate in candidates:
+
+        key = (
+            candidate
+            .lower()
+            .replace("_", "")
+            .replace("-", "")
+        )
+
+        if key in normalized:
+            return normalized[key]
+
+    return None
+
+
+def select_kpi_features(df):
+
+    candidates = {
+
+        "sinr": [
+            "sinr",
+            "dlSinr",
+            "dlsinr",
+        ],
+
+        "bler": [
+            "bler",
+            "dlBler",
+            "dlbler",
+        ],
+
+        "mcs": [
+            "mcs",
+            "dlMcs",
+            "dlmcs",
+        ],
+
+        "cqi": [
+            "cqi",
+            "dlCqi",
+            "dlcqi",
+        ],
+
+        "rsrp": [
+            "rsrp",
+            "dlRsrp",
+            "dlrsrp",
+        ],
+    }
+
+    selected = {}
+
+    for name, candidates_list in candidates.items():
+
+        col = find_column(
+            df,
+            candidates_list
+        )
+
+        if col is not None:
+            selected[name] = col
+
+    print("\nSelected KPI columns:")
+    print(selected)
+
+    if len(selected) < 5:
+
+        print(
+            "\nWARNING: Fewer than five predefined "
+            "KPI columns were found."
+        )
+
+        numeric_cols = df.select_dtypes(
+            include=np.number
+        ).columns.tolist()
+
+        exclude = {
+            "rnti",
+            "id",
+            "timestamp",
+        }
+
+        numeric_cols = [
+            c for c in numeric_cols
+            if str(c).lower() not in exclude
+        ]
+
+        if len(numeric_cols) >= 5:
+
+            selected = {
+                f"kpi_{i}": numeric_cols[i]
+                for i in range(5)
+            }
+
+            print(
+                "\nUsing five numerical columns "
+                "automatically:"
+            )
+            print(selected)
+
+    if len(selected) < 5:
+
+        raise ValueError(
+            "Unable to identify at least five "
+            "numerical KPI features. "
+            "Print the columns above and edit "
+            "the candidate lists."
+        )
+
+    selected = dict(
+        list(selected.items())[:5]
+    )
+
+    data = df[
+        list(selected.values())
+    ].copy()
+
+    data = data.apply(
+        pd.to_numeric,
+        errors="coerce"
+    )
+
+    data = data.replace(
+        [np.inf, -np.inf],
+        np.nan
+    )
+
+    data = data.interpolate(
+        limit_direction="both"
+    )
+
+    data = data.fillna(
+        data.median()
+    )
+
+    return data.astype(np.float32)
+
+
+if __name__ == "__main__":
+
+    df = load_sqlite_dataset()
+
+    features = select_kpi_features(df)
+
+    print("\nFinal LSTM data:")
+    print(features.head())
+
+    print("\nShape:", features.shape)
+
+
+
+
+from sklearn.preprocessing import StandardScaler
+
+
+def create_sequences(data):
+
+    scaler = StandardScaler()
+
+    values = scaler.fit_transform(
+        data.values
+    )
+
+    X = []
+    Y = []
+
+    for i in range(
+        len(values) - SEQ_LEN
+    ):
+
+        X.append(
+            values[i:i + SEQ_LEN]
+        )
+
+        Y.append(
+            values[i + SEQ_LEN]
+        )
+
+    X = np.asarray(
+        X,
+        dtype=np.float32
+    )
+
+    Y = np.asarray(
+        Y,
+        dtype=np.float32
+    )
+
+    return X, Y, scaler
+
+
+if __name__ == "__main__":
+
+    df = load_sqlite_dataset()
+
+    features = select_kpi_features(df)
+
+    X, Y, scaler = create_sequences(
+        features
+    )
+
+    print("\nLSTM input:", X.shape)
+    print("LSTM target:", Y.shape)
+
+
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
+from sklearn.model_selection import train_test_split
+
+from oran_config import (
+    LSTM_HIDDEN,
+    LSTM_LAYERS,
+    LSTM_DROPOUT,
+    LSTM_EPOCHS,
+    LSTM_BATCH_SIZE,
+    LSTM_LR,
+    DEVICE,
+    MODEL_DIR,
+)
+
+import sqlite3
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+from oran_config import (
+    DATASET_PATH,
+    TABLE_NAME,
+    SEQ_LEN,
+)
+
+
+# ============================================================
+# 1. LOAD SQLITE DATASET
+# ============================================================
+
+def load_sqlite_dataset(
+    db_path=DATASET_PATH,
+    table_name=TABLE_NAME,
+):
+    """
+    Load the O-RAN dataset from the SQLite database.
+
+    Returns
+    -------
+    pd.DataFrame
+        Complete dataset table.
+    """
+
+    db_path = Path(db_path)
+
+    if not db_path.exists():
+        raise FileNotFoundError(
+            f"Dataset not found: {db_path}"
+        )
+
+    conn = sqlite3.connect(str(db_path))
+
+    try:
+        df = pd.read_sql_query(
+            f"SELECT * FROM {table_name}",
+            conn,
+        )
+    finally:
+        conn.close()
+
+    if df.empty:
+        raise ValueError(
+            f"Table '{table_name}' is empty."
+        )
+
+    return df
+
+
+# ============================================================
+# 2. SELECT KPI FEATURES
+# ============================================================
+
+def select_kpi_features(df):
+    """
+    Select the five KPI features used by the LSTM.
+
+    Selected features:
+        SINR
+        BLER
+        MCS
+        CQI
+        RSRP
+
+    Returns
+    -------
+    features : np.ndarray
+        Numerical KPI matrix.
+    kpi_columns : dict
+        Mapping between logical KPI names and database columns.
+    """
+
+    columns_lower = {
+        str(col).lower(): col
+        for col in df.columns
+    }
+
+    def find_column(candidates):
+
+        # Exact match first
+        for candidate in candidates:
+
+            if candidate.lower() in columns_lower:
+                return columns_lower[
+                    candidate.lower()
+                ]
+
+        # Partial match second
+        for col_lower, original_col in columns_lower.items():
+
+            for candidate in candidates:
+
+                if candidate.lower() in col_lower:
+                    return original_col
+
+        return None
+
+    kpi_columns = {
+
+        "sinr": find_column([
+            "sinr",
+            "dlSinr",
+            "dl_sinr",
+        ]),
+
+        "bler": find_column([
+            "dlBler",
+            "bler",
+            "dl_bler",
+        ]),
+
+        "mcs": find_column([
+            "dlMcs",
+            "mcs",
+            "dl_mcs",
+        ]),
+
+        "cqi": find_column([
+            "cqi",
+            "dlCqi",
+            "dl_cqi",
+        ]),
+
+        "rsrp": find_column([
+            "rsrp",
+            "dlRsrp",
+            "dl_rsrp",
+        ]),
+    }
+
+    missing = [
+        name
+        for name, column in kpi_columns.items()
+        if column is None
+    ]
+
+    if missing:
+
+        raise ValueError(
+            "The following KPI columns could not be found: "
+            f"{missing}\n\n"
+            f"Available columns:\n{list(df.columns)}"
+        )
+
+    print("\nSelected KPI columns:")
+    print(kpi_columns)
+
+    selected_columns = [
+        kpi_columns["sinr"],
+        kpi_columns["bler"],
+        kpi_columns["mcs"],
+        kpi_columns["cqi"],
+        kpi_columns["rsrp"],
+    ]
+
+    features = (
+        df[selected_columns]
+        .apply(pd.to_numeric, errors="coerce")
+        .replace(
+            [np.inf, -np.inf],
+            np.nan,
+        )
+        .dropna()
+        .to_numpy(
+            dtype=np.float32
+        )
+    )
+
+    return features, kpi_columns
+
+
+# ============================================================
+# 3. CREATE LSTM SEQUENCES
+# ============================================================
+
+def create_sequences(
+    features,
+    seq_len=SEQ_LEN,
+):
+    """
+    Create sliding-window sequences for LSTM prediction.
+
+    For each time step:
+
+        X[t] = observations [t, ..., t+seq_len-1]
+
+        y[t] = observation [t+seq_len]
+
+    Parameters
+    ----------
+    features : np.ndarray
+        KPI feature matrix with shape (N, 5).
+
+    seq_len : int
+        Number of historical observations in each
+        LSTM input sequence.
+
+    Returns
+    -------
+    X : np.ndarray
+        Shape: (N-seq_len, seq_len, 5)
+
+    y : np.ndarray
+        Shape: (N-seq_len, 5)
+    """
+
+    if features.ndim != 2:
+        raise ValueError(
+            "features must be a 2-D array."
+        )
+
+    if features.shape[1] != 5:
+        raise ValueError(
+            "Expected exactly 5 KPI features, "
+            f"but received {features.shape[1]}."
+        )
+
+    if len(features) <= seq_len:
+        raise ValueError(
+            f"Number of observations ({len(features)}) "
+            f"must be greater than sequence length "
+            f"({seq_len})."
+        )
+
+    X = []
+    y = []
+
+    for i in range(
+        len(features) - seq_len
+    ):
+
+        X.append(
+            features[
+                i:i + seq_len
+            ]
+        )
+
+        y.append(
+            features[
+                i + seq_len
+            ]
+        )
+
+    X = np.asarray(
+        X,
+        dtype=np.float32,
+    )
+
+    y = np.asarray(
+        y,
+        dtype=np.float32,
+    )
+
+    print(
+        f"\nLSTM input: {X.shape}"
+    )
+
+    print(
+        f"LSTM target: {y.shape}"
+    )
+
+    return X, y
+
+
+# ============================================================
+# 4. COMPATIBILITY FUNCTION
+# ============================================================
+
+def load_lstm_data(
+    db_path=DATASET_PATH,
+    table_name=TABLE_NAME,
+    seq_len=SEQ_LEN,
+):
+    """
+    Convenience function for standalone LSTM training.
+    """
+
+    df = load_sqlite_dataset(
+        db_path=db_path,
+        table_name=table_name,
+    )
+
+    features, kpi_columns = (
+        select_kpi_features(df)
+    )
+
+    X, y = create_sequences(
+        features,
+        seq_len=seq_len,
+    )
+
+    return X, y, kpi_columns
+
+
+# ============================================================
+# 5. STANDALONE TEST
+# ============================================================
+
+if __name__ == "__main__":
+
+    df = load_sqlite_dataset()
+
+    features, kpi_columns = (
+        select_kpi_features(df)
+    )
+
+    X, y = create_sequences(
+        features,
+        seq_len=SEQ_LEN,
+    )
+
+    print(
+        "\nDataset loading successful."
+    )
+
+    print(
+        f"Input shape : {X.shape}"
+    )
+
+    print(
+        f"Target shape: {y.shape}"
+    )
+
+
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
+
+
+class LSTMPredictor(nn.Module):
+    def __init__(
+        self,
+        input_dim=5,
+        hidden_dim=64,
+        num_layers=2,
+        dropout=0.2,
+        output_dim=5,
+    ):
+        super().__init__()
+
+        self.lstm = nn.LSTM(
+            input_size=input_dim,
+            hidden_size=hidden_dim,
+            num_layers=num_layers,
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0.0,
+        )
+
+        self.fc = nn.Linear(
+            hidden_dim,
+            output_dim,
+        )
+
+    def forward(self, x):
+
+        output, _ = self.lstm(x)
+
+        last_output = output[:, -1, :]
+
+        prediction = self.fc(last_output)
+
+        return prediction
+
+
+def train_lstm(
+    X,
+    y,
+    epochs=20,
+    batch_size=64,
+    learning_rate=1e-3,
+    device=None,
+):
+    """
+    Train the LSTM predictor.
+    """
+
+    if device is None:
+        device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu"
+        )
+
+    # --------------------------------------------------------
+    # Convert NumPy arrays to tensors
+    # --------------------------------------------------------
+
+    X_tensor = torch.tensor(
+        X,
+        dtype=torch.float32,
+    )
+
+    y_tensor = torch.tensor(
+        y,
+        dtype=torch.float32,
+    )
+
+    # --------------------------------------------------------
+    # Train/test split
+    # --------------------------------------------------------
+
+    split_idx = int(
+        0.8 * len(X_tensor)
+    )
+
+    X_train = X_tensor[:split_idx]
+    y_train = y_tensor[:split_idx]
+
+    X_test = X_tensor[split_idx:]
+    y_test = y_tensor[split_idx:]
+
+    train_dataset = TensorDataset(
+        X_train,
+        y_train,
+    )
+
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+    )
+
+    # --------------------------------------------------------
+    # Model
+    # --------------------------------------------------------
+
+    model = LSTMPredictor(
+        input_dim=X.shape[2],
+        hidden_dim=64,
+        num_layers=2,
+        dropout=0.2,
+        output_dim=y.shape[1],
+    ).to(device)
+
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=learning_rate,
+    )
+
+    criterion = nn.MSELoss()
+
+    # --------------------------------------------------------
+    # Training
+    # --------------------------------------------------------
+
+    model.train()
+
+    for epoch in range(epochs):
+
+        running_loss = 0.0
+
+        for X_batch, y_batch in train_loader:
+
+            X_batch = X_batch.to(device)
+            y_batch = y_batch.to(device)
+
+            optimizer.zero_grad()
+
+            prediction = model(X_batch)
+
+            loss = criterion(
+                prediction,
+                y_batch,
+            )
+
+            loss.backward()
+
+            optimizer.step()
+
+            running_loss += (
+                loss.item()
+                * X_batch.size(0)
+            )
+
+        epoch_loss = (
+            running_loss
+            / len(train_dataset)
+        )
+
+        print(
+            f"Epoch "
+            f"{epoch + 1:03d}/{epochs:03d} "
+            f"- Loss: {epoch_loss:.6f}"
+        )
+
+    # --------------------------------------------------------
+    # Test
+    # --------------------------------------------------------
+
+    model.eval()
+
+    with torch.no_grad():
+
+        X_test_device = X_test.to(device)
+
+        predictions = model(
+            X_test_device
+        )
+
+        test_loss = criterion(
+            predictions,
+            y_test.to(device),
+        ).item()
+
+    print()
+    print("LSTM training successful.")
+    print(f"Train samples: {len(X_train)}")
+    print(f"Test samples : {len(X_test)}")
+    print(f"Test MSE     : {test_loss:.6f}")
+
+    return model, predictions.cpu().numpy(), test_loss
+
+
+def predict_lstm(
+    model,
+    X,
+    device=None,
+):
+    """
+    Generate LSTM predictions.
+    """
+
+    if device is None:
+        device = torch.device(
+            "cuda" if torch.cuda.is_available()
+            else "cpu"
+        )
+
+    model = model.to(device)
+    model.eval()
+
+    X_tensor = torch.tensor(
+        X,
+        dtype=torch.float32,
+    ).to(device)
+
+    with torch.no_grad():
+
+        predictions = model(
+            X_tensor
+        )
+
+    return predictions.cpu().numpy()
+
+
+# ============================================================
+# Standalone test
+# ============================================================
+
+if __name__ == "__main__":
+
+    from dataset_loader import load_lstm_data
+    from oran_config import (
+        DEVICE,
+        LSTM_EPOCHS,
+        LSTM_BATCH_SIZE,
+        LSTM_LEARNING_RATE,
+    )
+
+    print("\nLoading dataset for LSTM...")
+
+    X, y, kpi_columns = load_lstm_data()
+
+    print("\nStarting LSTM training...")
+
+    model, predictions, test_loss = train_lstm(
+        X=X,
+        y=y,
+        epochs=LSTM_EPOCHS,
+        batch_size=LSTM_BATCH_SIZE,
+        learning_rate=LSTM_LEARNING_RATE,
+        device=DEVICE,
+    )
+
+    print("\nPrediction shape:")
+    print(predictions.shape)
+
+    print("\nFirst five predictions:")
+    print(predictions[:5])
+
+
